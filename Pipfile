@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 djangorestframework = "*"
+django-rest-knox = "*"
 
 [dev-packages]
 
