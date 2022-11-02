@@ -6,14 +6,14 @@ from users.models import User
 
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
-    role = serializers.CharField()
-    title = serializers.CharField()
+    role = serializers.CharField(max_length=7)
+    title = serializers.CharField(max_length=255)
     is_blocked = serializers.BooleanField()
     image_s3_path = serializers.URLField()
 
     class Meta:
         model = User
-        fields = "__all__"
+        exclude = ('password',)
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -27,7 +27,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = '__all__'
+        exclude = ('last_login',)
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
@@ -46,7 +46,3 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
-
-
-class RetrieveUpdateDestroyUserSerializer(serializers.ModelSerializer):
-    pass
