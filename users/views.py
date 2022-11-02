@@ -13,8 +13,8 @@ class UserListViewSet(generics.ListAPIView):
 
     def get_queryset(self):
         """
-        Optionally restricts the returned purchases to a given user,
-        by filtering against a `username` query parameter in the URL.
+        If user provides username param, returns users
+                with following username
         """
 
         queryset = User.objects.all()
