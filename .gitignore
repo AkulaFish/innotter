@@ -11,8 +11,9 @@ media
 
 # If you are using PyCharm # 
 # User-specific stuff
-/.idea
-.idea/*
+/innotter/__pycache__
+/innotter/.idea
+.idea
 .idea/**/workspace.xml
 .idea/**/tasks.xml
 .idea/**/usage.statistics.xml
@@ -139,3 +140,12 @@ GitHub.sublime-settings
 .history
 /innotter/.idea/
 !/innotter/.idea/
+!/innotter/.idea/
+/innotter/.idea/
+
+=======
+
+>>>>>>> 6b7731f1fbc3d53f36cb7a608ed2cda8cd436993
+!/innotter/.idea/
+!/innotter/.idea/
+/innotter/.idea/
