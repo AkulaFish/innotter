@@ -5,8 +5,8 @@ from users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
-    role = serializers.CharField(max_length=7)
+    email = serializers.EmailField(required=True)
+    role = serializers.ChoiceField(choices=('user', 'manager', 'admin'), required=True)
     title = serializers.CharField(max_length=255)
     is_blocked = serializers.BooleanField()
     image_s3_path = serializers.URLField()
@@ -23,7 +23,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
     )
     role = serializers.ChoiceField(choices=('user', 'manager', 'admin'), required=True)
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
+    password2 = serializers.CharField(required=True, write_only=True)
 
     class Meta:
         model = User
@@ -40,6 +40,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             role=validated_data['role'],
             title=validated_data['title'],
+            username=validated_data['username']
         )
 
         user.set_password(validated_data['password'])

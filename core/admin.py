@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import *
+from .models import Page, Post, Tag
 
 
 @admin.register(Page, Post, Tag)

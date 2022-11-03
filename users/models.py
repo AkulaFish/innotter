@@ -1,10 +1,8 @@
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from users.managers import UserManager
 
-
-class User(AbstractBaseUser):
+class User(AbstractUser):
     """ Authorization User Model """
 
     class Roles(models.TextChoices):
@@ -15,32 +13,24 @@ class User(AbstractBaseUser):
     username = models.CharField(max_length=128, unique=True)
     email = models.EmailField(unique=True)
     image_s3_path = models.CharField(max_length=200, null=True, blank=True)
-    role = models.CharField(max_length=9, choices=Roles.choices, default='user')
+    role = models.CharField(max_length=9, choices=Roles.choices, default=Roles.USER)
     title = models.CharField(max_length=80, null=True, blank=True)
     is_blocked = models.BooleanField(default=False)
     password = models.CharField(max_length=128)
 
-    objects = UserManager()
-
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'username'
 
     def __str__(self):
-        return self.email
-
-    def has_perm(self, perm, obj=None):
-        if self.is_admin:
-            return True
-        return False
-
-    def has_module_perms(self, *args):
-        if self.is_admin:
-            return True
-        return False
+        return self.username
 
     @property
     def is_staff(self):
-        return self.is_admin
+        return self.is_admin or self.is_moderator
 
     @property
     def is_admin(self):
-        return True if self.role == 'admin' else False
+        return True if self.role == self.Roles.ADMIN else False
+
+    @property
+    def is_moderator(self):
+        return True if self.role == self.Roles.ADMIN or self.Roles.MODERATOR else False

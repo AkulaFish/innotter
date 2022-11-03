@@ -11,6 +11,8 @@ media
 
 # If you are using PyCharm # 
 # User-specific stuff
+/innotter/__pycache__
+/innotter/.idea
 .idea
 .idea/**/workspace.xml
 .idea/**/tasks.xml
@@ -136,4 +138,7 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+/innotter/.idea/
+!/innotter/.idea/
+!/innotter/.idea/
 /innotter/.idea/
