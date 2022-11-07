@@ -3,7 +3,7 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """ Authorization User Model """
+    """ Authorization User Model. """
 
     class Roles(models.TextChoices):
         USER = 'user'
@@ -37,4 +37,4 @@ class User(AbstractUser):
 
     @property
     def is_superuser(self):
-        return True if self.is_admin else False
+        return self.is_admin

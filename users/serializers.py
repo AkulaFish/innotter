@@ -5,6 +5,7 @@ from users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """ User model serializer. """
     email = serializers.EmailField(required=True)
     role = serializers.ChoiceField(choices=('user', 'manager', 'admin'), required=True)
     title = serializers.CharField(max_length=255)
@@ -17,6 +18,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
+    """ Serializer for user registration. """
     email = serializers.EmailField(
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
@@ -32,12 +34,17 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         exclude = ('last_login',)
 
     def validate(self, attrs):
+        """ Password validation. """
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
 
         return attrs
 
     def create(self, validated_data):
+        """
+                        Overriding create method to not use additional
+        password2 field for creating user instance, which is used only for password validation.
+        """
         user = User.objects.create(
             email=validated_data['email'],
             role=validated_data['role'],
