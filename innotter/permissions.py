@@ -5,7 +5,8 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     """ Determines whether user is Admin or Read Only. """
 
     def has_permission(self, request, view):
-        if (request.user.is_admin and not request.user.is_blocked) or request.method in permissions.SAFE_METHODS :
+        if ((request.user.is_admin and not request.user.is_blocked)
+                or request.method in permissions.SAFE_METHODS):
             return True
         return False
 
@@ -18,9 +19,12 @@ class IsAdminOrModerOrReadOnly(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS and not request.user.is_blocked:
+        if (request.method in permissions.SAFE_METHODS
+                and not request.user.is_blocked):
             return True
-        return True if request.user and (request.user.is_admin or request.user.is_moderator) else False
+        return (True if request.user and
+                (request.user.is_admin or request.user.is_moderator)
+                else False)
 
 
 class IsAdminOrModerAndNotBlocked(permissions.BasePermission):
@@ -34,7 +38,10 @@ class IsAdminOrModerAndNotBlocked(permissions.BasePermission):
 
 
 class IsOwnerAdminModerOrReadOnlyOrBlocked(permissions.BasePermission):
-    """ To change profile info user must be owner of it, Admin or moderator. """
+    """
+    To change profile info user must be
+    owner of it, Admin or moderator.
+    """
 
     def has_object_permission(self, request, view, obj):
         if (request.user.is_admin
@@ -49,8 +56,10 @@ class PostIsOwnerAdminModerOrReadOnlyOrBlocked(permissions.BasePermission):
     """
     Post model specified permission.
     Post model requires different syntax to determine the owner of the object
-    obj.page.owner instead of obj.owner because post refer to page and then page to owner
-    Therefore this permission is identical to IsOwnerAdminModerOrReadOnlyOrBlocked, just specified for
+    obj.page.owner instead of obj.owner because post refer
+    to page and then page to owner
+    Therefore this permission is identical
+    to IsOwnerAdminModerOrReadOnlyOrBlocked, just specified for
     post model.
     """
 
@@ -76,7 +85,9 @@ class IsBlockedOrReadOnly(permissions.BasePermission):
     Returns True if user is not blocked and uses Safe methods.
     Set as a default permission
     """
+
     def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS and not request.user.is_blocked:
+        if (request.method in permissions.SAFE_METHODS
+                and not request.user.is_blocked):
             return True
         return False

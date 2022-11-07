@@ -13,7 +13,10 @@ class User(AbstractUser):
     username = models.CharField(max_length=128, unique=True)
     email = models.EmailField(unique=True)
     image_s3_path = models.CharField(max_length=200, null=True, blank=True)
-    role = models.CharField(max_length=9, choices=Roles.choices, default=Roles.USER)
+    role = models.CharField(max_length=9,
+                            choices=Roles.choices,
+                            default=Roles.USER
+                            )
     title = models.CharField(max_length=80, null=True, blank=True)
     is_blocked = models.BooleanField(default=False)
     password = models.CharField(max_length=128)

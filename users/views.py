@@ -2,7 +2,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import (ListModelMixin, CreateModelMixin,
-                                   UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin)
+                                   UpdateModelMixin, RetrieveModelMixin,
+                                   DestroyModelMixin)
 
 from users.models import User
 from innotter.permissions import IsAdminOrModerOrReadOnly, IsNotAuthenticated
@@ -47,7 +48,8 @@ class RetrieveUpdateDestroyUserViewSet(RetrieveModelMixin,
 
     def delete(self, request, *args, **kwargs):
         """ Override delete to log the successful deletion of a user. """
-        super(RetrieveUpdateDestroyUserViewSet, self).delete(self, request, *args, **kwargs)
+        super(RetrieveUpdateDestroyUserViewSet, self).delete(
+            self, request, *args, **kwargs)
         return Response(
             {"result": "User successfully deleted."}
         )

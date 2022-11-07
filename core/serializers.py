@@ -37,7 +37,8 @@ class PostSerializer(serializers.ModelSerializer):
     page = serializers.PrimaryKeyRelatedField(queryset=Page.objects.all())
     content = serializers.CharField(max_length=180)
     reply_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(),
-                                                  required=False, allow_empty=True)
+                                                  required=False,
+                                                  allow_empty=True)
     likes = serializers.IntegerField(default=0, read_only=True)
     dislikes = serializers.IntegerField(default=0, read_only=True)
     created_at = serializers.DateTimeField(read_only=True)
@@ -52,6 +53,7 @@ class PostSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         user = request.user
         if attrs['page'] not in user.pages.all():
-            raise serializers.ValidationError({"page": "You have no access to this page. "
-                                                       "Create your own page."})
+            raise serializers.ValidationError(
+                {"page": "You have no access to this page. "
+                         "Create your own page."})
         return attrs

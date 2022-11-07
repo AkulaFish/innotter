@@ -7,7 +7,8 @@ from users.models import User
 class UserSerializer(serializers.ModelSerializer):
     """ User model serializer. """
     email = serializers.EmailField(required=True)
-    role = serializers.ChoiceField(choices=('user', 'manager', 'admin'), required=True)
+    role = serializers.ChoiceField(choices=('user', 'manager', 'admin'),
+                                   required=True)
     title = serializers.CharField(max_length=255)
     is_blocked = serializers.BooleanField()
     image_s3_path = serializers.URLField(required=False)
@@ -24,7 +25,10 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     role = serializers.ChoiceField(choices=User.Roles.choices, required=True)
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password = serializers.CharField(write_only=True,
+                                     required=True,
+                                     validators=[validate_password]
+                                     )
     password2 = serializers.CharField(required=True, write_only=True)
     user_permissions = serializers.HiddenField(default=[])
     groups = serializers.HiddenField(default=[])
@@ -36,14 +40,17 @@ class RegisterUserSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """ Password validation. """
         if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
+            raise serializers.ValidationError(
+                {"password": "Password fields didn't match."}
+            )
 
         return attrs
 
     def create(self, validated_data):
         """
-                        Overriding create method to not use additional
-        password2 field for creating user instance, which is used only for password validation.
+        Overriding create method to not use additional
+        password2 field for creating user instance,
+        which is used only for password validation.
         """
         user = User.objects.create(
             email=validated_data['email'],
