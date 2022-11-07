@@ -10,8 +10,9 @@ from innotter.permissions import IsAdminOrModerOrReadOnly, IsNotAuthenticated
 from users.serializers import UserSerializer, RegisterUserSerializer
 
 
-class UserListViewSet(ListModelMixin,
-                      GenericViewSet):
+class UserListViewSet(
+        ListModelMixin,
+        GenericViewSet):
     """ Gets list of all users. """
     serializer_class = UserSerializer
     permission_classes = (AllowAny,)
@@ -29,18 +30,20 @@ class UserListViewSet(ListModelMixin,
         return queryset
 
 
-class RegisterUserViewSet(CreateModelMixin,
-                          GenericViewSet):
+class RegisterUserViewSet(
+        CreateModelMixin,
+        GenericViewSet):
     """ Registrate a new user. """
     queryset = User.objects.all()
     serializer_class = RegisterUserSerializer
     permission_classes = (IsNotAuthenticated,)
 
 
-class RetrieveUpdateDestroyUserViewSet(RetrieveModelMixin,
-                                       UpdateModelMixin,
-                                       DestroyModelMixin,
-                                       GenericViewSet):
+class RetrieveUpdateDestroyUserViewSet(
+        RetrieveModelMixin,
+        UpdateModelMixin,
+        DestroyModelMixin,
+        GenericViewSet):
     """ Updates, deletes and retrieves user info. """
     queryset = User.objects.all()
     serializer_class = UserSerializer

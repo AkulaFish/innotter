@@ -12,13 +12,12 @@ from users.models import User
 
 
 class PageViewSet(
-    CreateModelMixin,
-    UpdateModelMixin,
-    ListModelMixin,
-    RetrieveModelMixin,
-    DestroyModelMixin,
-    GenericViewSet
-):
+        CreateModelMixin,
+        UpdateModelMixin,
+        ListModelMixin,
+        RetrieveModelMixin,
+        DestroyModelMixin,
+        GenericViewSet):
     """
     Page view set.
     """
@@ -47,13 +46,12 @@ class PageViewSet(
 
 
 class PostViewSet(
-    CreateModelMixin,
-    UpdateModelMixin,
-    ListModelMixin,
-    RetrieveModelMixin,
-    DestroyModelMixin,
-    GenericViewSet
-):
+        CreateModelMixin,
+        UpdateModelMixin,
+        ListModelMixin,
+        RetrieveModelMixin,
+        DestroyModelMixin,
+        GenericViewSet):
     """
     Post view set.
     """
@@ -64,10 +62,9 @@ class PostViewSet(
 
 
 class NewsFeedSet(
-    ListModelMixin,
-    RetrieveModelMixin,
-    GenericViewSet
-):
+        ListModelMixin,
+        RetrieveModelMixin,
+        GenericViewSet):
     """ Displays newsfeed with post of pages you currently follow. """
 
     serializer_class = PostSerializer
@@ -83,9 +80,8 @@ class NewsFeedSet(
 
 
 class TagListViewSet(
-    ListModelMixin,
-    GenericViewSet
-):
+        ListModelMixin,
+        GenericViewSet):
     """ Tag list view set. Allows looking through the list of Tags. """
 
     queryset = Tag.objects.all()
