@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 djangorestframework = "*"
 django-rest-knox = "*"
+pillow = "*"
 
 [dev-packages]
 

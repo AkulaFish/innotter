@@ -9,7 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=('user', 'manager', 'admin'), required=True)
     title = serializers.CharField(max_length=255)
     is_blocked = serializers.BooleanField()
-    image_s3_path = serializers.URLField()
+    image_s3_path = serializers.URLField(required=False)
 
     class Meta:
         model = User
@@ -21,9 +21,11 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
-    role = serializers.ChoiceField(choices=('user', 'manager', 'admin'), required=True)
+    role = serializers.ChoiceField(choices=User.Roles.choices, required=True)
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(required=True, write_only=True)
+    user_permissions = serializers.HiddenField(default=[])
+    groups = serializers.HiddenField(default=[])
 
     class Meta:
         model = User
@@ -40,7 +42,9 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             role=validated_data['role'],
             title=validated_data['title'],
-            username=validated_data['username']
+            username=validated_data['username'],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['first_name'],
         )
 
         user.set_password(validated_data['password'])
