@@ -8,24 +8,30 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0009_alter_page_uuid_alter_post_reply_to'),
+        ("core", "0009_alter_page_uuid_alter_post_reply_to"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='post',
-            name='created_at',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
+            model_name="post",
+            name="created_at",
+            field=models.DateTimeField(
+                auto_now_add=True, default=django.utils.timezone.now
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='post',
-            name='updated_at',
+            model_name="post",
+            name="updated_at",
             field=models.DateTimeField(auto_now=True),
         ),
         migrations.AlterField(
-            model_name='page',
-            name='uuid',
-            field=models.UUIDField(auto_created=True, default=uuid.UUID('4e514ace-8ece-470c-bac5-879a9bf9fbb5'), unique=True),
+            model_name="page",
+            name="uuid",
+            field=models.UUIDField(
+                auto_created=True,
+                default=uuid.UUID("4e514ace-8ece-470c-bac5-879a9bf9fbb5"),
+                unique=True,
+            ),
         ),
     ]

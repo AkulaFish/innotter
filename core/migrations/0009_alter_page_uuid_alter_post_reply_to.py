@@ -8,18 +8,28 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0008_alter_page_uuid'),
+        ("core", "0008_alter_page_uuid"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='page',
-            name='uuid',
-            field=models.UUIDField(auto_created=True, default=uuid.UUID('4926cc64-d6bd-4522-8240-b25d137d0bed'), unique=True),
+            model_name="page",
+            name="uuid",
+            field=models.UUIDField(
+                auto_created=True,
+                default=uuid.UUID("4926cc64-d6bd-4522-8240-b25d137d0bed"),
+                unique=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='post',
-            name='reply_to',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='replies', to='core.post'),
+            model_name="post",
+            name="reply_to",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="replies",
+                to="core.post",
+            ),
         ),
     ]

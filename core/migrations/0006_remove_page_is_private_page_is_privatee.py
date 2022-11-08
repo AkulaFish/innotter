@@ -6,17 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0005_alter_page_follow_requests'),
+        ("core", "0005_alter_page_follow_requests"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='page',
-            name='is_private',
+            model_name="page",
+            name="is_private",
         ),
         migrations.AddField(
-            model_name='page',
-            name='is_privatee',
+            model_name="page",
+            name="is_privatee",
             field=models.BooleanField(default=False),
         ),
     ]

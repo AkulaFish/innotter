@@ -8,13 +8,15 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('core', '0004_alter_page_follow_requests'),
+        ("core", "0004_alter_page_follow_requests"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='page',
-            name='follow_requests',
-            field=models.ManyToManyField(default=[], related_name='requests', to=settings.AUTH_USER_MODEL),
+            model_name="page",
+            name="follow_requests",
+            field=models.ManyToManyField(
+                default=[], related_name="requests", to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

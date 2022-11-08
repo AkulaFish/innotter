@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='page',
-            name='uuid',
+            model_name="page",
+            name="uuid",
             field=models.UUIDField(auto_created=True, unique=True),
         ),
     ]

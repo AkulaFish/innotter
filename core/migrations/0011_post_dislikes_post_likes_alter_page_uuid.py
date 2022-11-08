@@ -7,23 +7,27 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0010_post_created_at_post_updated_at_alter_page_uuid'),
+        ("core", "0010_post_created_at_post_updated_at_alter_page_uuid"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='post',
-            name='dislikes',
+            model_name="post",
+            name="dislikes",
             field=models.IntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='post',
-            name='likes',
+            model_name="post",
+            name="likes",
             field=models.IntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='page',
-            name='uuid',
-            field=models.UUIDField(auto_created=True, default=uuid.UUID('57350f3b-5ffb-4314-93a9-9f3a03532f4f'), unique=True),
+            model_name="page",
+            name="uuid",
+            field=models.UUIDField(
+                auto_created=True,
+                default=uuid.UUID("57350f3b-5ffb-4314-93a9-9f3a03532f4f"),
+                unique=True,
+            ),
         ),
     ]

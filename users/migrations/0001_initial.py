@@ -7,19 +7,39 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('email', models.EmailField(max_length=254, unique=True)),
-                ('image_s3_path', models.CharField(blank=True, max_length=200, null=True)),
-                ('role', models.CharField(choices=[('user', 'User'), ('moderator', 'Moderator'), ('admin', 'Admin')], max_length=9)),
-                ('title', models.CharField(max_length=80)),
-                ('is_blocked', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("email", models.EmailField(max_length=254, unique=True)),
+                (
+                    "image_s3_path",
+                    models.CharField(blank=True, max_length=200, null=True),
+                ),
+                (
+                    "role",
+                    models.CharField(
+                        choices=[
+                            ("user", "User"),
+                            ("moderator", "Moderator"),
+                            ("admin", "Admin"),
+                        ],
+                        max_length=9,
+                    ),
+                ),
+                ("title", models.CharField(max_length=80)),
+                ("is_blocked", models.BooleanField(default=False)),
             ],
         ),
     ]

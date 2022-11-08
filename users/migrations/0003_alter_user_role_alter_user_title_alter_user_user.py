@@ -9,23 +9,33 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('users', '0002_user_user'),
+        ("users", "0002_user_user"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='role',
-            field=models.CharField(choices=[('user', 'User'), ('moderator', 'Moderator'), ('admin', 'Admin')], default='user', max_length=9),
+            model_name="user",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("user", "User"),
+                    ("moderator", "Moderator"),
+                    ("admin", "Admin"),
+                ],
+                default="user",
+                max_length=9,
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='title',
+            model_name="user",
+            name="title",
             field=models.CharField(blank=True, max_length=80, null=True),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
+            model_name="user",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

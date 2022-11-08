@@ -6,22 +6,24 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0003_alter_user_role_alter_user_title_alter_user_user'),
+        ("users", "0003_alter_user_role_alter_user_title_alter_user_user"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='user',
-            name='user',
+            model_name="user",
+            name="user",
         ),
         migrations.AddField(
-            model_name='user',
-            name='last_login',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='last login'),
+            model_name="user",
+            name="last_login",
+            field=models.DateTimeField(
+                blank=True, null=True, verbose_name="last login"
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='password',
-            field=models.CharField(default='userpass', max_length=128),
+            model_name="user",
+            name="password",
+            field=models.CharField(default="userpass", max_length=128),
         ),
     ]

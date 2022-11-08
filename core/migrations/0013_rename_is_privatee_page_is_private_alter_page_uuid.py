@@ -7,18 +7,22 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0012_merge_20221106_2141'),
+        ("core", "0012_merge_20221106_2141"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='page',
-            old_name='is_privatee',
-            new_name='is_private',
+            model_name="page",
+            old_name="is_privatee",
+            new_name="is_private",
         ),
         migrations.AlterField(
-            model_name='page',
-            name='uuid',
-            field=models.UUIDField(auto_created=True, default=uuid.UUID('fd18e16a-3d39-467a-8d27-5d734f15e5c1'), unique=True),
+            model_name="page",
+            name="uuid",
+            field=models.UUIDField(
+                auto_created=True,
+                default=uuid.UUID("fd18e16a-3d39-467a-8d27-5d734f15e5c1"),
+                unique=True,
+            ),
         ),
     ]

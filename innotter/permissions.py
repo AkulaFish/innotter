@@ -2,11 +2,12 @@ from rest_framework import permissions
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
-    """ Determines whether user is Admin or Read Only. """
+    """Determines whether user is Admin or Read Only."""
 
     def has_permission(self, request, view):
-        if ((request.user.is_admin and not request.user.is_blocked)
-                or request.method in permissions.SAFE_METHODS):
+        if (
+            request.user.is_admin and not request.user.is_blocked
+        ) or request.method in permissions.SAFE_METHODS:
             return True
         return False
 
@@ -19,20 +20,24 @@ class IsAdminOrModerOrReadOnly(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if (request.method in permissions.SAFE_METHODS
-                and not request.user.is_blocked):
+        if request.method in permissions.SAFE_METHODS and not request.user.is_blocked:
             return True
-        return (True if request.user and
-                (request.user.is_admin or request.user.is_moderator)
-                else False)
+        return (
+            True
+            if request.user and (request.user.is_admin or request.user.is_moderator)
+            else False
+        )
 
 
 class IsAdminOrModerAndNotBlocked(permissions.BasePermission):
-    """ Determines whether user is Admin or Moderator and not blocked. """
+    """Determines whether user is Admin or Moderator and not blocked."""
 
     def has_permission(self, request, view):
-        if (request.user and not request.user.is_blocked and
-                (request.user.is_admin or request.user.is_moderator)):
+        if (
+            request.user
+            and not request.user.is_blocked
+            and (request.user.is_admin or request.user.is_moderator)
+        ):
             return True
         return False
 
@@ -44,10 +49,12 @@ class IsOwnerAdminModerOrReadOnlyOrBlocked(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        if (request.user.is_admin
-                or request.user.is_moderator
-                or obj.page.owner == request.user
-                or request.method in permissions.SAFE_METHODS):
+        if (
+            request.user.is_admin
+            or request.user.is_moderator
+            or obj.page.owner == request.user
+            or request.method in permissions.SAFE_METHODS
+        ):
             return True
         return False
 
@@ -64,17 +71,19 @@ class PostIsOwnerAdminModerOrReadOnlyOrBlocked(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        if (request.user.is_admin
-                or request.user.is_moderator
-                or obj.page.owner == request.user
-                or request.method in permissions.SAFE_METHODS
-                and not request.user.is_blocked):
+        if (
+            request.user.is_admin
+            or request.user.is_moderator
+            or obj.page.owner == request.user
+            or request.method in permissions.SAFE_METHODS
+            and not request.user.is_blocked
+        ):
             return True
         return False
 
 
 class IsNotAuthenticated(permissions.BasePermission):
-    """ Returns True if user is not authenticated to proceed registration. """
+    """Returns True if user is not authenticated to proceed registration."""
 
     def has_permission(self, request, view):
         return not request.user.is_authenticated
@@ -87,7 +96,6 @@ class IsBlockedOrReadOnly(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if (request.method in permissions.SAFE_METHODS
-                and not request.user.is_blocked):
+        if request.method in permissions.SAFE_METHODS and not request.user.is_blocked:
             return True
         return False

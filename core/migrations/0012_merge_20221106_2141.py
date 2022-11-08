@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0007_remove_page_is_private_page_is_privatee'),
-        ('core', '0011_post_dislikes_post_likes_alter_page_uuid'),
+        ("core", "0007_remove_page_is_private_page_is_privatee"),
+        ("core", "0011_post_dislikes_post_likes_alter_page_uuid"),
     ]
 
-    operations = [
-    ]
+    operations = []
