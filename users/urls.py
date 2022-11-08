@@ -1,10 +1,28 @@
-from django.urls import path
-from users.views import *
+from django.urls import path, include
+from rest_framework.routers import SimpleRouter
 
-app_name = 'users'
+from users.views import (
+    UserListViewSet,
+    RegisterUserViewSet,
+    RetrieveUpdateDestroyUserViewSet,
+)
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+    TokenVerifyView,
+)
+
+router = SimpleRouter()
+router.register(r"users", viewset=UserListViewSet, basename="Page")
+router.register(r"users", viewset=RetrieveUpdateDestroyUserViewSet, basename="Posts")
+router.register(r"register", viewset=RegisterUserViewSet, basename="Posts")
+
+app_name = "users"
 urlpatterns = [
-    path('users/', UserListViewSet.as_view(), name="get_users"),
-    path('users/<int:pk>', RetrieveUpdateUserViewSet.as_view(), name="get_or_update_single_user"),
-    path('userdelete/<int:pk>', DeleteUserViewSet.as_view(), name="delete_user"),
-    path('register/', RegisterUserViewSet.as_view(), name='users_register'),
+    # user crud routs
+    path("", include(router.urls)),
+    # simplejwt token routs
+    path("token/", TokenObtainPairView.as_view(), name="token_obtain"),
+    path("token/verify/", TokenVerifyView.as_view(), name="token_verify"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
