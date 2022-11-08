@@ -1,6 +1,6 @@
+from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
 from rest_framework.mixins import (
     ListModelMixin,
     CreateModelMixin,
@@ -9,9 +9,9 @@ from rest_framework.mixins import (
     DestroyModelMixin,
 )
 
-from users.models import User
 from innotter.permissions import IsAdminOrModerOrReadOnly, IsNotAuthenticated
 from users.serializers import UserSerializer, RegisterUserSerializer
+from users.models import User
 
 
 class UserListViewSet(ListModelMixin, GenericViewSet):

@@ -25,9 +25,7 @@ class PageViewSet(
     DestroyModelMixin,
     GenericViewSet,
 ):
-    """
-    Page view set.
-    """
+    """ Page view set. """
 
     serializer_class = PageSerializer
     permission_classes = (IsOwnerAdminModerOrReadOnlyOrBlocked,)
