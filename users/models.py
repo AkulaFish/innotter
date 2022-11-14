@@ -24,6 +24,10 @@ class User(AbstractUser):
         return self.username
 
     @property
+    def is_active(self):
+        return not self.is_blocked
+
+    @property
     def is_staff(self):
         return self.is_admin or self.is_moderator
 

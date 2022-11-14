@@ -23,14 +23,29 @@ class PageSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
     followers = UserSerializer(many=True, read_only=True)
-    image = serializers.URLField(allow_null=True)
+    image = serializers.ImageField(allow_null=True, required=False)
     is_private = serializers.BooleanField(required=True)
     follow_requests = UserSerializer(read_only=True, many=True)
+    permanent_block = serializers.BooleanField(read_only=True)
     unblock_date = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Page
         fields = "__all__"
+
+
+class BlockPageSerializer(serializers.ModelSerializer):
+    """Serializer for block"""
+
+    permanent_block = serializers.BooleanField(default=False)
+    unblock_date = serializers.DateTimeField(allow_null=True, default=None)
+
+    class Meta:
+        model = Page
+        fields = (
+            "permanent_block",
+            "unblock_date",
+        )
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -41,8 +56,7 @@ class PostSerializer(serializers.ModelSerializer):
     reply_to = serializers.PrimaryKeyRelatedField(
         queryset=Post.objects.all(), required=False, allow_empty=True
     )
-    likes = serializers.IntegerField(default=0, read_only=True)
-    dislikes = serializers.IntegerField(default=0, read_only=True)
+    likes = UserSerializer(read_only=True, many=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 

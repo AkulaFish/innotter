@@ -1,4 +1,7 @@
+import datetime
 import uuid as uuid
+from django.utils import timezone
+
 from django.db import models
 
 
@@ -13,17 +16,38 @@ class Page(models.Model):
     name = models.CharField(max_length=80)
     uuid = models.UUIDField(auto_created=True, unique=True, default=uuid.uuid4())
     description = models.TextField()
-    tags = models.ManyToManyField("core.Tag", related_name="pages")
+    tags = models.ManyToManyField("core.Tag", related_name="pages", blank=True)
     owner = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="pages"
     )
-    followers = models.ManyToManyField("users.User", related_name="follows")
-    image = models.URLField(null=True, blank=True)
+    followers = models.ManyToManyField("users.User", related_name="follows", blank=True)
+    image = models.ImageField(blank=True, default=None, null=True)
     is_private = models.BooleanField(default=False)
     follow_requests = models.ManyToManyField(
-        "users.User", related_name="requests", default=[]
+        "users.User", related_name="requests", blank=True
     )
-    unblock_date = models.DateTimeField(null=True, blank=True)
+    permanent_block = models.BooleanField(default=False)
+    unblock_date = models.DateTimeField(default=None, null=True)
+
+    @property
+    def is_blocked(self):
+        """
+        This property defines whether page is still
+        blocked if we set temporary blocking by using
+        unblock_date field or whether page must
+        stay blocked because of permanent block
+        """
+        if self.permanent_block:
+            return True
+        elif not self.unblock_date:
+            return False
+
+        if self.owner.is_blocked or self.unblock_date > timezone.now():
+            return True
+        elif self.unblock_date <= timezone.now():
+            self.unblock_date = None
+            return False
+        return False
 
     def __str__(self):
         return self.name
@@ -39,8 +63,7 @@ class Post(models.Model):
         blank=True,
         related_name="replies",
     )
-    likes = models.IntegerField(default=0)
-    dislikes = models.IntegerField(default=0)
+    likes = models.ManyToManyField("users.User", related_name="liked_posts", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

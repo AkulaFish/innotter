@@ -16,7 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        exclude = ("password",)
+        exclude = ("password", "groups", "user_permissions")
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -30,12 +30,13 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         write_only=True, required=True, validators=[validate_password]
     )
     password2 = serializers.CharField(required=True, write_only=True)
+    image_s3_path = serializers.ImageField(required=False, allow_empty_file=False)
     user_permissions = serializers.HiddenField(default=[])
     groups = serializers.HiddenField(default=[])
 
     class Meta:
         model = User
-        exclude = ("last_login",)
+        exclude = ("last_login", "date_joined", "is_blocked")
 
     def validate(self, attrs):
         """Password validation."""
