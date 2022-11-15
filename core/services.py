@@ -4,7 +4,7 @@ from rest_framework.status import HTTP_409_CONFLICT, HTTP_200_OK
 from rest_framework.response import Response
 from django.db.models import QuerySet
 
-from core.models import Page, Post
+from core.models import Page, Post, Tag
 from users.models import User
 
 
@@ -54,6 +54,10 @@ def get_newsfeed(cur_user: User) -> List[QuerySet]:
 
 
 def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:
+    """
+    Service that adds/removes user to/from page followers or
+    sends follow request if page is private.
+    """
     if page in cur_user.pages.all():
         return Response(
             {"response": "You're trying to follow your own page"},
@@ -64,7 +68,8 @@ def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:
         if not page.is_private:
             page.followers.add(cur_user)
             return Response(
-                {"response": "Now you follow this page."}, status=HTTP_200_OK
+                {"response": "Now you follow this page."},
+                status=HTTP_200_OK,
             )
         else:
             page.follow_requests.add(cur_user)
@@ -81,6 +86,10 @@ def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:
 
 
 def decline_requests(user: User, page: Page) -> Response:
+    """
+    Service that accepts declines request if follower id is provided.
+    Otherwise, declines all requests for certain page.
+    """
     if user in page.followers.all():
         return Response(
             {"response": "User already follows you"}, status=HTTP_409_CONFLICT
@@ -96,9 +105,14 @@ def decline_requests(user: User, page: Page) -> Response:
 
 
 def accept_requests(user: User, page: Page) -> Response:
+    """
+    Service that accepts certain request if follower id is provided.
+    Otherwise, accepts all requests for certain page
+    """
     if user in page.followers.all():
         return Response(
-            {"response": "User already follows you"}, status=HTTP_409_CONFLICT
+            {"response": "User already follows you"},
+            status=HTTP_409_CONFLICT,
         )
 
     if user in page.follow_requests.all():
@@ -113,3 +127,18 @@ def accept_requests(user: User, page: Page) -> Response:
             {"response": "All requests have been accepted"},
             status=HTTP_200_OK,
         )
+
+
+def get_tag_set_for_page(tags: List[dict]) -> List[Tag]:
+    """
+    Service that returns list of tags to set for an instance of a page
+    if you want to create or update it.
+    """
+    tag_objs = []
+    for tag_data in tags:
+        if Tag.objects.filter(**tag_data).exists():
+            tag = Tag.objects.get(**tag_data)
+        else:
+            tag = Tag.objects.create(**tag_data)
+        tag_objs.append(tag)
+    return tag_objs

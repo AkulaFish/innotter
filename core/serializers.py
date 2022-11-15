@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from core.services import get_tag_set_for_page
 from users.serializers import UserSerializer
 from core.models import Page, Tag, Post
 
@@ -7,7 +8,7 @@ from core.models import Page, Tag, Post
 class TagSerializer(serializers.ModelSerializer):
     """Tag model serializer"""
 
-    name = serializers.CharField(max_length=30)
+    name = serializers.CharField(max_length=30, required=True)
 
     class Meta:
         model = Tag
@@ -32,6 +33,26 @@ class PageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Page
         fields = "__all__"
+
+    def create(self, validated_data):
+        """
+        Overriding create method for Tag nested serializer
+        implemented in page serializer tags field
+        """
+        tags = validated_data.pop("tags", [])
+        instance = Page.objects.create(**validated_data)
+        instance.tags.set(get_tag_set_for_page(tags=tags))
+        return instance
+
+    def update(self, instance, validated_data):
+        """
+        Overriding update method for Tag nested serializer
+        implemented in page serializer tags field
+        """
+        tags = validated_data.pop("tags", [])
+        instance = super().update(instance, validated_data)
+        instance.tags.set(get_tag_set_for_page(tags=tags))
+        return instance
 
 
 class BlockPageSerializer(serializers.ModelSerializer):

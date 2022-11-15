@@ -27,9 +27,16 @@ class RegisterUserSerializer(serializers.ModelSerializer):
     )
     role = serializers.ChoiceField(choices=User.Roles.choices, required=True)
     password = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password]
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={"input-type": "password"},
     )
-    password2 = serializers.CharField(required=True, write_only=True)
+    password2 = serializers.CharField(
+        required=True,
+        write_only=True,
+        style={"input-type": "password"},
+    )
     image_s3_path = serializers.ImageField(required=False, allow_empty_file=False)
     user_permissions = serializers.HiddenField(default=[])
     groups = serializers.HiddenField(default=[])
