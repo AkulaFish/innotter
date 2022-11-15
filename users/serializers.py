@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=("user", "manager", "admin"), required=True)
     title = serializers.CharField(max_length=255)
     is_blocked = serializers.BooleanField()
-    image_s3_path = serializers.URLField(required=False)
+    image_s3_path = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
@@ -32,12 +32,14 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         validators=[validate_password],
         style={"input-type": "password"},
     )
-    password2 = serializers.CharField(
+    password_repeat = serializers.CharField(
         required=True,
         write_only=True,
         style={"input-type": "password"},
     )
-    image_s3_path = serializers.ImageField(required=False, allow_empty_file=False)
+    image_s3_path = serializers.ImageField(
+        required=False, allow_empty_file=False, allow_null=True
+    )
     user_permissions = serializers.HiddenField(default=[])
     groups = serializers.HiddenField(default=[])
 

@@ -5,9 +5,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     """Determines whether user is Admin or Read Only."""
 
     def has_permission(self, request, view):
-        if request.user.is_admin or request.method in permissions.SAFE_METHODS:
-            return True
-        return False
+        return request.user.is_admin or request.method in permissions.SAFE_METHODS
 
 
 class IsAdminOrModerOrReadOnly(permissions.BasePermission):
@@ -17,22 +15,20 @@ class IsAdminOrModerOrReadOnly(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if request.method in permissions.SAFE_METHODS:
-            return True
         return (
-            True
-            if request.user and (request.user.is_admin or request.user.is_moderator)
-            else False
-        )
+            request.user and (request.user.is_admin or request.user.is_moderator)
+        ) or request.method in permissions.SAFE_METHODS
 
 
 class IsAdminOrModer(permissions.BasePermission):
     """Determines whether user is Admin or Moderator."""
 
     def has_permission(self, request, view):
-        if request.user and (request.user.is_admin or request.user.is_moderator):
-            return True
-        return False
+        return (
+            True
+            if request.user and (request.user.is_admin or request.user.is_moderator)
+            else False
+        )
 
 
 class IsOwnerAdminModerOrReadOnly(permissions.BasePermission):
@@ -42,14 +38,16 @@ class IsOwnerAdminModerOrReadOnly(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        if (
-            request.user.is_admin
-            or request.user.is_moderator
-            or obj.owner == request.user
-            or request.method in permissions.SAFE_METHODS
-        ):
-            return True
-        return False
+        return (
+            True
+            if (
+                request.user.is_admin
+                or request.user.is_moderator
+                or obj.owner == request.user
+                or request.method in permissions.SAFE_METHODS
+            )
+            else False
+        )
 
 
 class PostIsOwnerAdminModerOrReadOnly(permissions.BasePermission):
@@ -64,14 +62,16 @@ class PostIsOwnerAdminModerOrReadOnly(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        if (
-            request.user.is_admin
-            or request.user.is_moderator
-            or obj.page.owner == request.user
-            or request.method in permissions.SAFE_METHODS
-        ):
-            return True
-        return False
+        return (
+            True
+            if (
+                request.user.is_admin
+                or request.user.is_moderator
+                or obj.page.owner == request.user
+                or request.method in permissions.SAFE_METHODS
+            )
+            else False
+        )
 
 
 class IsNotAuthenticated(permissions.BasePermission):
@@ -85,6 +85,4 @@ class IsOwner(permissions.BasePermission):
     """Checks if user is the owner of the object"""
 
     def has_object_permission(self, request, view, obj):
-        if obj.owner == request.user:
-            return True
-        return False
+        return obj.owner == request.user

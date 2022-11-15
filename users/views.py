@@ -17,6 +17,7 @@ from innotter.permissions import (
 )
 from users.serializers import UserSerializer, RegisterUserSerializer
 from users.models import User
+from users.services import block_unblock
 
 
 class UserListViewSet(ListModelMixin, GenericViewSet):
@@ -66,20 +67,12 @@ class RetrieveUpdateDestroyUserViewSet(
         methods=["get"],
         permission_classes=(IsAuthenticated, IsAdminOrModer),
         detail=True,
-        url_path="block",
+        url_path="block-unblock",
         url_name="block_or_unblock_user",
     )
-    def block_user(self, *args, **kwargs):
+    def block_or_unblock_user(self, *args, **kwargs):
         """
         Service that provides possibility for
         admins and moderators to block users
         """
-        user = self.get_object()
-        if not user.is_blocked:
-            user.is_blocked = True
-            user.save()
-            return Response({"response": "User successfully blocked"})
-        else:
-            user.is_blocked = False
-            user.save()
-            return Response({"response": "User unblocked"})
+        return block_unblock(user=self.get_object())
