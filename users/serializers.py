@@ -12,11 +12,11 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=("user", "manager", "admin"), required=True)
     title = serializers.CharField(max_length=255)
     is_blocked = serializers.BooleanField()
-    image_s3_path = serializers.URLField(required=False)
+    image_s3_path = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
-        exclude = ("password",)
+        exclude = ("password", "groups", "user_permissions")
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
@@ -27,15 +27,25 @@ class RegisterUserSerializer(serializers.ModelSerializer):
     )
     role = serializers.ChoiceField(choices=User.Roles.choices, required=True)
     password = serializers.CharField(
-        write_only=True, required=True, validators=[validate_password]
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={"input-type": "password"},
     )
-    password2 = serializers.CharField(required=True, write_only=True)
+    password_repeat = serializers.CharField(
+        required=True,
+        write_only=True,
+        style={"input-type": "password"},
+    )
+    image_s3_path = serializers.ImageField(
+        required=False, allow_empty_file=False, allow_null=True
+    )
     user_permissions = serializers.HiddenField(default=[])
     groups = serializers.HiddenField(default=[])
 
     class Meta:
         model = User
-        exclude = ("last_login",)
+        exclude = ("last_login", "date_joined", "is_blocked")
 
     def validate(self, attrs):
         """Password validation."""

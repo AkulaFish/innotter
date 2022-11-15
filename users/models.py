@@ -24,17 +24,32 @@ class User(AbstractUser):
         return self.username
 
     @property
+    def is_active(self):
+        """Overriding default is_active, so it depends on is_blocked."""
+        return not self.is_blocked
+
+    @property
     def is_staff(self):
+        """Shortcut to determine user with any privileges(admin or moderator)."""
         return self.is_admin or self.is_moderator
 
     @property
     def is_admin(self):
+        """
+        Shortcut to define if user is admin.
+        (Also overriding default is_admin role provided by Django)
+        """
         return self.role == self.Roles.ADMIN
 
     @property
     def is_moderator(self):
+        """Shortcut to define if user is moderator"""
         return self.role == self.Roles.MODERATOR
 
     @property
     def is_superuser(self):
+        """
+        Overriding default is_admin to associate
+        it with new custom role of Admin
+        """
         return self.is_admin

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from core.services import get_tag_set_for_page
 from users.serializers import UserSerializer
 from core.models import Page, Tag, Post
 
@@ -7,7 +8,7 @@ from core.models import Page, Tag, Post
 class TagSerializer(serializers.ModelSerializer):
     """Tag model serializer"""
 
-    name = serializers.CharField(max_length=30)
+    name = serializers.CharField(max_length=30, required=True)
 
     class Meta:
         model = Tag
@@ -23,14 +24,49 @@ class PageSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
     followers = UserSerializer(many=True, read_only=True)
-    image = serializers.URLField(allow_null=True)
+    image = serializers.ImageField(allow_null=True, required=False)
     is_private = serializers.BooleanField(required=True)
     follow_requests = UserSerializer(read_only=True, many=True)
+    permanent_block = serializers.BooleanField(read_only=True)
     unblock_date = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Page
         fields = "__all__"
+
+    def create(self, validated_data):
+        """
+        Overriding create method for Tag nested serializer
+        implemented in page serializer tags field
+        """
+        tags = validated_data.pop("tags", [])
+        instance = Page.objects.create(**validated_data)
+        instance.tags.set(get_tag_set_for_page(tags=tags))
+        return instance
+
+    def update(self, instance, validated_data):
+        """
+        Overriding update method for Tag nested serializer
+        implemented in page serializer tags field
+        """
+        tags = validated_data.pop("tags", [])
+        instance = super().update(instance, validated_data)
+        instance.tags.set(get_tag_set_for_page(tags=tags))
+        return instance
+
+
+class BlockPageSerializer(serializers.ModelSerializer):
+    """Serializer for block"""
+
+    permanent_block = serializers.BooleanField(default=False)
+    unblock_date = serializers.DateTimeField(allow_null=True, default=None)
+
+    class Meta:
+        model = Page
+        fields = (
+            "permanent_block",
+            "unblock_date",
+        )
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -41,8 +77,7 @@ class PostSerializer(serializers.ModelSerializer):
     reply_to = serializers.PrimaryKeyRelatedField(
         queryset=Post.objects.all(), required=False, allow_empty=True
     )
-    likes = serializers.IntegerField(default=0, read_only=True)
-    dislikes = serializers.IntegerField(default=0, read_only=True)
+    likes = UserSerializer(read_only=True, many=True)
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
