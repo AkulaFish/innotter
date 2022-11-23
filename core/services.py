@@ -33,13 +33,31 @@ def get_posts(cur_user: User) -> List[Post]:
     """
     posts = []
     for post in Post.objects.all():
-        if post.page.is_blocked or (
-            post.page.is_private
-            and cur_user not in post.page.followers.all()
-            and not cur_user.is_staff
+        page = post.page
+        if (
+            not page.is_blocked
+            and not page.is_private
+            or (
+                page.is_private
+                and (
+                    cur_user in page.followers.all()
+                    or cur_user.is_staff
+                    or page.owner == cur_user
+                )
+            )
         ):
-            posts.append(post)
-    return posts
+            posts.append(post.pk)
+    return Post.objects.filter(pk__in=posts)
+
+
+def like_unlike(cur_user: User, post: Post) -> Response:
+    """Like or remove your like from the post if you already liked it"""
+    if cur_user not in post.likes.all():
+        post.likes.add(cur_user)
+        return Response({"response": "Post added to your liked posts"})
+    else:
+        post.likes.remove(cur_user)
+        return Response({"response": "Post removed from your liked posts"})
 
 
 def get_newsfeed(cur_user: User) -> List[QuerySet]:
@@ -111,7 +129,7 @@ def accept_requests(user: User, page: Page) -> Response:
     """
     if user in page.followers.all():
         return Response(
-            {"response": "User already follows you"},
+            {"response": "User already follows you."},
             status=HTTP_409_CONFLICT,
         )
 
@@ -121,7 +139,7 @@ def accept_requests(user: User, page: Page) -> Response:
             {"response": "Request has been accepted"},
             status=HTTP_200_OK,
         )
-    else:
+    elif not user:
         accept_all_requests(page)
         return Response(
             {"response": "All requests have been accepted"},
@@ -136,8 +154,8 @@ def get_tag_set_for_page(tags: List[dict]) -> List[Tag]:
     """
     tag_objs = []
     for tag_data in tags:
-        if Tag.objects.filter(**tag_data).exists():
-            tag = Tag.objects.get(**tag_data)
+        if Tag.objects.filter(name=tag_data["name"]).exists():
+            tag = Tag.objects.get(name=tag_data["name"])
         else:
             tag = Tag.objects.create(**tag_data)
         tag_objs.append(tag)

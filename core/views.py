@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.generics import get_object_or_404
@@ -14,7 +15,7 @@ from rest_framework.mixins import (
 )
 
 from users.serializers import UserSerializer
-from core.models import Page, Post, Tag
+from core.models import Page, Tag
 from users.models import User
 from core.serializers import (
     PageSerializer,
@@ -28,10 +29,10 @@ from core.services import (
     follow_or_unfollow_page,
     decline_requests,
     accept_requests,
+    like_unlike,
 )
 from innotter.permissions import (
     IsOwner,
-    IsOwnerAdminModerOrReadOnly,
     PostIsOwnerAdminModerOrReadOnly,
     IsAdminOrModer,
 )
@@ -47,18 +48,15 @@ class PageViewSet(
 ):
     """Page view set."""
 
-    queryset = Page.objects.all()
+    queryset = Page.objects.prefetch_related("tags").all()
     serializer_class = PageSerializer
-    permission_classes = (
-        IsAuthenticatedOrReadOnly,
-        IsOwnerAdminModerOrReadOnly,
-    )
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("owner", "tags", "uuid")
+    permission_classes = (IsAuthenticated & (IsAdminOrModer | IsOwner),)
 
     # REQUEST ACTIONS
     @action(
-        permission_classes=(IsOwner, IsAuthenticated),
+        permission_classes=(IsAuthenticated, IsOwner),
         serializer_class=UserSerializer,
         url_path="requests",
         url_name="requests",
@@ -73,35 +71,51 @@ class PageViewSet(
             return Response(serializer.data)
 
     @action(
-        permission_classes=(IsAuthenticated,),
-        methods=["get"],
-        detail=True,
-    )
-    def accept_requests_action(self, *args, **kwargs):
-        """Service that provides functionality for accepting follow requests"""
-        page = get_object_or_404(Page.objects.all(), pk=int(kwargs["pk"]))
-        user = get_object_or_404(User.objects.all(), pk=int(kwargs["target_user_id"]))
-        return accept_requests(user, page)
-
-    @action(
-        permission_classes=(IsAuthenticated,),
-        methods=["get"],
+        permission_classes=[
+            IsAuthenticated & IsOwner,
+        ],
+        methods=["put"],
         detail=True,
     )
     def decline_requests_action(self, *args, **kwargs):
         """This action provides functionality for declining follow requests"""
         page = get_object_or_404(Page.objects.all(), pk=int(kwargs["pk"]))
-        user = get_object_or_404(User.objects.all(), pk=int(kwargs["target_user_id"]))
+        self.check_object_permissions(self.request, page)
+        self.check_permissions(self.request)
+        if kwargs["target_user_id"]:
+            user = get_object_or_404(
+                User.objects.all(), pk=int(kwargs["target_user_id"])
+            )
+        else:
+            user = None
         return decline_requests(user, page)
 
     @action(
+        methods=["put"],
+        permission_classes=(IsAuthenticated, IsOwner),
+        detail=True,
+    )
+    def accept_requests_action(self, *args, **kwargs):
+        """Service that provides functionality for accepting follow requests"""
+        page = get_object_or_404(Page.objects.all(), pk=int(kwargs["pk"]))
+        self.check_object_permissions(self.request, page)
+        self.check_permissions(self.request)
+        if kwargs["target_user_id"]:
+            user = get_object_or_404(
+                User.objects.all(), pk=int(kwargs["target_user_id"])
+            )
+        else:
+            user = None
+        return accept_requests(user, page)
+
+    @action(
         permission_classes=(IsAuthenticated,),
-        methods=["get"],
+        methods=["put", "get"],
         url_name="follow_unfollow_page",
         url_path="follow-unfollow",
         detail=True,
     )
-    def follow_page_action(self, *args, **kwargs):
+    def follow_or_unfollow_page_action(self, *args, **kwargs):
         """This action provides api for following and unfollowing pages"""
         return follow_or_unfollow_page(self.request.user, self.get_object())
 
@@ -110,11 +124,11 @@ class BlockPageViewSet(
     UpdateModelMixin,
     GenericViewSet,
 ):
-    """Service for blocking users for chosen period of time or permanently"""
+    """Service for blocking pages for chosen period of time or permanently"""
 
     queryset = Page.objects.all()
     serializer_class = BlockPageSerializer
-    permission_classes = (IsAuthenticated, IsAdminOrModer)
+    permission_classes = (IsAuthenticated & IsAdminOrModer,)
 
 
 class PostViewSet(
@@ -127,7 +141,6 @@ class PostViewSet(
 ):
     """Post view set."""
 
-    queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = (
         IsAuthenticatedOrReadOnly,
@@ -137,12 +150,10 @@ class PostViewSet(
     def get_queryset(self):
         """Excludes posts on blocked pages and private pages"""
         cur_user = self.request.user
-        posts = get_posts(cur_user)
-        queryset = Post.objects.filter(pk__in=[post.pk for post in posts])
-        return queryset
+        return get_posts(cur_user)
 
     @action(
-        methods=["get"],
+        methods=["get", "put"],
         detail=True,
         url_path="like",
         permission_classes=(IsAuthenticated,),
@@ -150,13 +161,7 @@ class PostViewSet(
     def like_unlike_post(self, *args, **kwargs):
         cur_user = self.request.user
         post = self.get_object()
-
-        if cur_user not in post.likes.all():
-            post.likes.add(cur_user)
-            return Response({"response": "Post added to your liked posts"})
-        else:
-            post.likes.remove(cur_user)
-            return Response({"response": "Post removed from your liked posts"})
+        return like_unlike(cur_user, post)
 
 
 class NewsFeedViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):

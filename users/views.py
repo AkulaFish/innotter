@@ -1,5 +1,9 @@
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -54,7 +58,7 @@ class RetrieveUpdateDestroyUserViewSet(
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdminOrModerOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly & IsAdminOrModerOrReadOnly,)
 
     def delete(self, request, *args, **kwargs):
         """Override delete to log the successful removal of a user."""

@@ -1,20 +1,31 @@
 version: "3.9"
 
 services:
-  db:
-    env_file:
-      - env/.env
-    image: postgres
-    volumes:
-      - ./data/db:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: ${DB_PASS}
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_STORAGE_BUCKET_NAME=${AWS_STORAGE_BUCKET_NAME}
+      - AWS_S3_CUSTOM_DOMAIN = ${AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com
     volumes:
-      - .:/innotter
+      - ./:/innotter
     ports:
       - "8000:8000"
     depends_on:
       - db
+  db:
+    image: postgres:15.1-alpine3.16
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER_NAME}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - ${DB_HOST}=db
+    ports:
+      - "5432:5432"
