@@ -43,7 +43,7 @@ class Page(models.Model):
         """
         if self.permanent_block:
             return True
-        if not self.unblock_date:
+        elif not self.unblock_date:
             return False
 
         if self.owner.is_blocked or self.unblock_date > timezone.now():
@@ -51,7 +51,6 @@ class Page(models.Model):
         elif self.unblock_date <= timezone.now():
             self.unblock_date = None
             return False
-        return False
 
     def __str__(self):
         return self.name

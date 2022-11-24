@@ -3,6 +3,7 @@ import pytest
 
 @pytest.mark.django_db
 def test_register_user(client):
+    """Testing user registration"""
     payload = dict(
         email="user@user.com",
         role="user",
@@ -12,7 +13,7 @@ def test_register_user(client):
         last_name="Potter",
         image_s3_path="",
         password="userpass",
-        password_repeat="userpass"
+        password_repeat="userpass",
     )
 
     response = client.post("/api/register/", payload)
@@ -30,6 +31,7 @@ def test_register_user(client):
 
 @pytest.mark.django_db
 def test_register_incorrect_repeated_password(client):
+    """Testing registration with incorrect data"""
     payload = dict(
         email="user@user.com",
         role="user",
@@ -38,7 +40,7 @@ def test_register_incorrect_repeated_password(client):
         first_name="Harry",
         last_name="Potter",
         password="userpass",
-        password_repeat="userpass2"
+        password_repeat="userpass2",
     )
 
     response = client.post("/api/register/", payload)
@@ -48,10 +50,8 @@ def test_register_incorrect_repeated_password(client):
 
 @pytest.mark.django_db
 def test_token_authentication(client, user):
-    request = client.post(
-        "/api/token/",
-        dict(username="user", password="userpass")
-    )
+    """Testing token authentication"""
+    request = client.post("/api/token/", dict(username="user", password="userpass"))
 
     assert "access" in request.data
     assert "refresh" in request.data
@@ -59,6 +59,7 @@ def test_token_authentication(client, user):
 
 @pytest.mark.django_db
 def test_get_list_of_users(client, user, admin):
+    """Testing getting list of all users"""
     request = client.get("/api/users/")
 
     assert len(request.data) == 2
@@ -66,23 +67,27 @@ def test_get_list_of_users(client, user, admin):
 
 @pytest.mark.django_db
 def test_retrieve_user(client, user_auth_token, user):
+    """Testing retrieve single user"""
     client.login(username="user", password="userpass")
-    response = client.get(r"/api/users/1/")
+    response = client.get(f"/api/users/{user.pk}/")
 
-    assert response.data["id"] == 1
+    assert response.data["id"] == user.pk
 
 
 @pytest.mark.django_db
 def test_block_user(client, user, admin):
+    """Testing user block by admin"""
     client.login(username="admin", password="adminpass")
-    response = client.get("/api/users/1/block-unblock/")
+    response = client.get(f"/api/users/{user.pk}/block-unblock/")
 
+    assert response.status_code == 200
     assert response.data["response"] == "User successfully blocked"
 
 
 @pytest.mark.django_db
-def test_block_user_without_permission(client, user2, admin):
+def test_block_user_without_permission(client, user_additional, admin):
+    """Testing user block by another user without privileges"""
     client.login(username="user2", password="userpass")
-    response = client.get("/api/users/3/block-unblock/")
+    response = client.get(f"/api/users/{admin.pk}/block-unblock/")
 
     assert response.status_code == 403

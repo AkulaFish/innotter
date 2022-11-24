@@ -1,3 +1,5 @@
+import datetime
+
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -60,10 +62,10 @@ class PageSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, attrs):
-        image = attrs["image"]
+        image = attrs.get("image")
         if not image:
             return attrs
-        if not image.endswith(".jpg"):
+        elif not image.endswith(".jpg"):
             raise ValidationError({"detail": "Incorrect picture format."})
         return attrs
 
@@ -81,10 +83,10 @@ class BlockPageSerializer(serializers.ModelSerializer):
         fields = ("permanent_block", "unblock_date")
 
     def validate(self, attrs):
-        unblock_date = attrs["unblock_date"]
+        unblock_date = attrs.get("unblock_date")
         if not unblock_date:
             return attrs
-        if unblock_date < timezone.now():
+        elif unblock_date < timezone.now():
             raise ValidationError({"detail": "Incorrect unblock date"})
         return attrs
 
@@ -111,7 +113,7 @@ class PostSerializer(serializers.ModelSerializer):
         """Validating if user has access to chosen page"""
         request = self.context.get("request")
         user = request.user
-        if not attrs["page"] or attrs["page"] not in user.pages.all():
+        if attrs.get("page") not in user.pages.all():
             raise serializers.ValidationError({"detail": "Invalid page"})
         return attrs
 

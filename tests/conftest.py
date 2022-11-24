@@ -9,8 +9,7 @@ from users.models import User
 @pytest.fixture
 def user():
     """Default user instance fixture"""
-    user = User(
-        id=1,
+    user = User.objects.create(
         email="user@user.com",
         role="user",
         title="user",
@@ -24,27 +23,9 @@ def user():
 
 
 @pytest.fixture
-def user2():
-    """Additional user instance fixture"""
-    user = User(
-        id=4,
-        email="user2@user.com",
-        role="user",
-        title="user2",
-        username="user2",
-        first_name="Harry",
-        last_name="Potter",
-    )
-    user.set_password("userpass")
-    user.save()
-    return user
-
-
-@pytest.fixture
 def moderator():
     """Moder user instance"""
-    moder = User(
-        id=2,
+    moder = User.objects.create(
         email="moder@moder.com",
         role="moderator",
         title="moder",
@@ -60,8 +41,7 @@ def moderator():
 @pytest.fixture
 def admin():
     """Admin user instance fixture"""
-    admin = User(
-        id=3,
+    admin = User.objects.create(
         email="admin@admin.com",
         role="admin",
         title="admin",
@@ -72,6 +52,22 @@ def admin():
     admin.set_password("adminpass")
     admin.save()
     return admin
+
+
+@pytest.fixture
+def user_additional():
+    """Additional user instance fixture"""
+    user = User.objects.create(
+        email="user2@user.com",
+        role="user",
+        title="user2",
+        username="user2",
+        first_name="Harry",
+        last_name="Potter",
+    )
+    user.set_password("userpass")
+    user.save()
+    return user
 
 
 @pytest.fixture
@@ -90,8 +86,7 @@ def user_auth_token(client, user):
 @pytest.fixture
 def user_page(user):
     """Default user page fixture"""
-    page = Page(
-        id=2,
+    page = Page.objects.create(
         name="UserPage",
         description="This is the first page of this user",
         is_private=False,
@@ -104,8 +99,7 @@ def user_page(user):
 @pytest.fixture
 def private_user_page(user):
     """Private user page fixture"""
-    page = Page(
-        id=1,
+    page = Page.objects.create(
         name="UserPrivatePage",
         description="This is the seccond page of this user",
         is_private=True,
@@ -118,8 +112,7 @@ def private_user_page(user):
 @pytest.fixture
 def admin_page(admin):
     """Admin page fixture"""
-    page = Page(
-        id=3,
+    page = Page.objects.create(
         name="AdminPage",
         description="I'm the boss here!!!",
         is_private=False,
@@ -132,21 +125,15 @@ def admin_page(admin):
 @pytest.fixture
 def tag():
     """Tag instance fixture"""
-    tag = Tag(
-        id=1,
-        name="SomeTag"
-    )
+    tag = Tag.objects.create(name="SomeTag")
     tag.save()
     return tag
 
 
 @pytest.fixture
-def tag2():
+def tag_additional():
     """Additional tag fixture"""
-    tag = Tag(
-        id=2,
-        name="SomeOtherTag"
-    )
+    tag = Tag.objects.create(name="SomeOtherTag")
     tag.save()
     return tag
 
@@ -154,11 +141,10 @@ def tag2():
 @pytest.fixture
 def post_on_private_page(user, private_user_page):
     """Post instance on private user page fixture"""
-    post = Post(
-        id=2,
+    post = Post.objects.create(
         subject="Private post subject",
         page=private_user_page,
-        content="This is my second post"
+        content="This is my second post",
     )
     post.save()
     return post
@@ -167,11 +153,8 @@ def post_on_private_page(user, private_user_page):
 @pytest.fixture
 def post(user, user_page):
     """Default post instance fixture"""
-    post = Post(
-        id=1,
-        subject="Post subject",
-        page=user_page,
-        content="This is my first post"
+    post = Post.objects.create(
+        subject="Post subject", page=user_page, content="This is my first post"
     )
     post.save()
     return post

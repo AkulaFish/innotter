@@ -29,7 +29,7 @@ def decline_all_requests(page: Page) -> None:
 def get_posts(cur_user: User) -> List[Post]:
     """
     Get post list not including posts on blocked pages
-    and post on private pages current user isn't subscribed on.
+    and posts on private pages current user isn't subscribed on.
     """
     posts = []
     for post in Post.objects.all():
@@ -103,7 +103,7 @@ def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:
         )
 
 
-def decline_requests(user: User, page: Page) -> Response:
+def decline_requests(page: Page, user: User = None) -> Response:
     """
     Service that accepts declines request if follower id is provided.
     Otherwise, declines all requests for certain page.
@@ -122,7 +122,7 @@ def decline_requests(user: User, page: Page) -> Response:
         )
 
 
-def accept_requests(user: User, page: Page) -> Response:
+def accept_requests(page: Page, user: User = None) -> Response:
     """
     Service that accepts certain request if follower id is provided.
     Otherwise, accepts all requests for certain page
@@ -132,8 +132,7 @@ def accept_requests(user: User, page: Page) -> Response:
             {"response": "User already follows you."},
             status=HTTP_409_CONFLICT,
         )
-
-    if user in page.follow_requests.all():
+    elif user in page.follow_requests.all():
         accept_request(page, user)
         return Response(
             {"response": "Request has been accepted"},
