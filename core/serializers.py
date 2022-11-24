@@ -62,10 +62,8 @@ class PageSerializer(serializers.ModelSerializer):
         return instance
 
     def validate(self, attrs):
-        image = attrs.get("image")
-        if not image:
-            return attrs
-        elif not image.endswith(".jpg"):
+        image = attrs.get("image", default=".jpg")
+        if not image.endswith(".jpg"):
             raise ValidationError({"detail": "Incorrect picture format."})
         return attrs
 
@@ -83,10 +81,8 @@ class BlockPageSerializer(serializers.ModelSerializer):
         fields = ("permanent_block", "unblock_date")
 
     def validate(self, attrs):
-        unblock_date = attrs.get("unblock_date")
-        if not unblock_date:
-            return attrs
-        elif unblock_date < timezone.now():
+        unblock_date = attrs.get("unblock_date", default=datetime.datetime(3000, 10, 10))
+        if unblock_date < timezone.now():
             raise ValidationError({"detail": "Incorrect unblock date"})
         return attrs
 
