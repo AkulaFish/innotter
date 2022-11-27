@@ -1,10 +1,9 @@
-import datetime
-
+from django.core.validators import FileExtensionValidator
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from core.email_services import send_new_post_notification_email
+from core.email_services import create_daemon_thread_for_email
 from core.services import get_tag_set_for_page
 from users.serializers import UserSerializer
 from core.models import Page, Tag, Post
@@ -30,12 +29,17 @@ class PageSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
     followers = UserSerializer(many=True, read_only=True)
     image = serializers.ImageField(
-        allow_null=True, required=False, allow_empty_file=True
+        allow_null=True,
+        required=False,
+        allow_empty_file=True,
+        default=None,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg"])],
     )
     is_private = serializers.BooleanField(required=True)
     follow_requests = UserSerializer(read_only=True, many=True)
     permanent_block = serializers.BooleanField(read_only=True)
     unblock_date = serializers.DateTimeField(read_only=True, required=False)
+    is_blocked = serializers.ReadOnlyField()
 
     class Meta:
         model = Page
@@ -61,17 +65,11 @@ class PageSerializer(serializers.ModelSerializer):
         instance.tags.set(get_tag_set_for_page(tags=tags))
         return instance
 
-    def validate(self, attrs):
-        image = attrs.get("image", default=".jpg")
-        if not image.endswith(".jpg"):
-            raise ValidationError({"detail": "Incorrect picture format."})
-        return attrs
-
 
 class BlockPageSerializer(serializers.ModelSerializer):
     """Serializer for block"""
 
-    permanent_block = serializers.BooleanField(required=False, default=True)
+    permanent_block = serializers.BooleanField(required=False, default=False)
     unblock_date = serializers.DateTimeField(
         required=False, default=None, allow_null=True
     )
@@ -81,8 +79,8 @@ class BlockPageSerializer(serializers.ModelSerializer):
         fields = ("permanent_block", "unblock_date")
 
     def validate(self, attrs):
-        unblock_date = attrs.get("unblock_date", default=datetime.datetime(3000, 10, 10))
-        if unblock_date < timezone.now():
+        unblock_date = attrs.get("unblock_date")
+        if unblock_date and unblock_date < timezone.now():
             raise ValidationError({"detail": "Incorrect unblock date"})
         return attrs
 
@@ -109,11 +107,16 @@ class PostSerializer(serializers.ModelSerializer):
         """Validating if user has access to chosen page"""
         request = self.context.get("request")
         user = request.user
-        if attrs.get("page") not in user.pages.all():
-            raise serializers.ValidationError({"detail": "Invalid page"})
+        page = attrs.get("page")
+        if page not in user.pages.all() or page.is_blocked:
+            raise serializers.ValidationError(
+                {
+                    "detail": "Invalid page (perhaps page is blocked or it's not your page)."
+                }
+            )
         return attrs
 
     def create(self, validated_data):
         instance = super().create(validated_data=validated_data)
-        send_new_post_notification_email(post=instance)
+        create_daemon_thread_for_email(instance)
         return instance

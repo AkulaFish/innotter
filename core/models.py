@@ -36,10 +36,8 @@ class Page(models.Model):
     @property
     def is_blocked(self):
         """
-        This property defines whether page is still
-        blocked if we set temporary blocking by using
-        unblock_date field or whether page must
-        stay blocked because of permanent block
+        This property defines whether page is still blocked if we set temporary blocking by using
+        unblock_date field or whether page must stay blocked because of permanent block
         """
         if self.permanent_block:
             return True
@@ -50,6 +48,7 @@ class Page(models.Model):
             return True
         elif self.unblock_date <= timezone.now():
             self.unblock_date = None
+            self.save()
             return False
 
     def __str__(self):

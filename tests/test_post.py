@@ -2,36 +2,49 @@ import pytest
 
 
 @pytest.mark.django_db
-def test_create_post(client, user_page, user, post_on_private_page):
+def test_create_post(client, user_page, user, post_on_private_page, post_payload):
     """Test creating post on user page that replies to another post"""
+    client.login(username="user", password="userpass")
+    response = client.post("/api/posts/", post_payload)
+
+    assert response.status_code == 201
+    assert response.data["subject"] == post_payload["subject"]
+    assert response.data["content"] == post_payload["content"]
+    assert response.data["reply_to"] == post_on_private_page.pk
+    assert response.data["page"] == user_page.pk
+
+
+@pytest.mark.django_db
+def test_create_post_on_blocked_page(client, user, blocked_user_page):
     payload = dict(
-        page=user_page.pk,
-        subject="Some cool subject",
-        reply_to=post_on_private_page.pk,
-        content="This is my first post",
+        page=blocked_user_page.pk,
+        subject="Blocked",
+        content="Hello from blocked",
     )
     client.login(username="user", password="userpass")
     response = client.post("/api/posts/", payload)
 
-    assert response.status_code == 201
-    assert response.data["subject"] == payload["subject"]
-    assert response.data["content"] == payload["content"]
+    assert response.status_code == 400
+    assert (
+        response.data["detail"][0]
+        == "Invalid page (perhaps page is blocked or it's not your page)."
+    )
 
 
 @pytest.mark.django_db
-def test_wrong_page_provided(client, user_page, user_additional, post):
+def test_wrong_page_provided(
+    client, user_page, user_additional, post, incorrect_post_payload
+):
     """Test creating post with wrong page provided"""
-    payload = dict(
-        page=user_page.pk,
-        subject="Some cool subject",
-        content="This is my first post",
-    )
     client.login(username="user2", password="userpass")
 
-    response = client.post("/api/posts/", payload)
+    response = client.post("/api/posts/", incorrect_post_payload)
 
     assert "detail" in response.data
-    assert response.data["detail"][0] == "Invalid page"
+    assert (
+        response.data["detail"][0]
+        == "Invalid page (perhaps page is blocked or it's not your page)."
+    )
 
 
 @pytest.mark.django_db

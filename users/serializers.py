@@ -40,7 +40,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         style={"input-type": "password"},
     )
     image_s3_path = serializers.ImageField(
-        required=False, allow_empty_file=False, allow_null=True
+        required=False, allow_empty_file=False, allow_null=True, default=None
     )
     user_permissions = serializers.HiddenField(default=[])
     groups = serializers.HiddenField(default=[])

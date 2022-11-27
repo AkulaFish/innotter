@@ -2,48 +2,25 @@ import pytest
 
 
 @pytest.mark.django_db
-def test_register_user(client):
+def test_register_user(client, user_payload):
     """Testing user registration"""
-    payload = dict(
-        email="user@user.com",
-        role="user",
-        title="user",
-        username="user",
-        first_name="Harry",
-        last_name="Potter",
-        image_s3_path="",
-        password="userpass",
-        password_repeat="userpass",
-    )
-
-    response = client.post("/api/register/", payload)
+    response = client.post("/api/register/", user_payload)
     data = response.data
 
-    assert data["email"] == payload["email"]
-    assert data["role"] == payload["role"]
-    assert data["title"] == payload["title"]
-    assert data["username"] == payload["username"]
-    assert data["first_name"] == payload["first_name"]
-    assert data["last_name"] == payload["last_name"]
+    assert data["email"] == user_payload["email"]
+    assert data["role"] == user_payload["role"]
+    assert data["title"] == user_payload["title"]
+    assert data["username"] == user_payload["username"]
+    assert data["first_name"] == user_payload["first_name"]
+    assert data["last_name"] == user_payload["last_name"]
     assert "password" not in data
     assert "password_repeat" not in data
 
 
 @pytest.mark.django_db
-def test_register_incorrect_repeated_password(client):
+def test_register_incorrect_repeated_password(client, incorrect_user_payload):
     """Testing registration with incorrect data"""
-    payload = dict(
-        email="user@user.com",
-        role="user",
-        title="user",
-        username="user",
-        first_name="Harry",
-        last_name="Potter",
-        password="userpass",
-        password_repeat="userpass2",
-    )
-
-    response = client.post("/api/register/", payload)
+    response = client.post("/api/register/", incorrect_user_payload)
 
     assert response.status_code == 400
 
@@ -78,7 +55,7 @@ def test_retrieve_user(client, user_auth_token, user):
 def test_block_user(client, user, admin):
     """Testing user block by admin"""
     client.login(username="admin", password="adminpass")
-    response = client.get(f"/api/users/{user.pk}/block-unblock/")
+    response = client.put(f"/api/users/{user.pk}/block-unblock/")
 
     assert response.status_code == 200
     assert response.data["response"] == "User successfully blocked"
@@ -88,6 +65,6 @@ def test_block_user(client, user, admin):
 def test_block_user_without_permission(client, user_additional, admin):
     """Testing user block by another user without privileges"""
     client.login(username="user2", password="userpass")
-    response = client.get(f"/api/users/{admin.pk}/block-unblock/")
+    response = client.put(f"/api/users/{admin.pk}/block-unblock/")
 
     assert response.status_code == 403

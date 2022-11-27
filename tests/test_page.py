@@ -1,7 +1,4 @@
 import datetime
-import json
-from unittest import mock
-from collections import OrderedDict
 
 import pytest
 
@@ -31,24 +28,17 @@ def test_retrieve_page(client, user, user_page):
 
 
 @pytest.mark.django_db
-def test_page_create(client, user):
+def test_page_create(client, user, user_page_payload):
     """Test creating page"""
-    payload = {
-        "name": "UserPage",
-        "description": "This is the first page of this user",
-        "image": None,
-        "tags": [{"name": "SomeTag"}],
-        "is_private": True,
-    }
     client.login(username="user", password="userpass")
-    response = client.post("/api/pages/", payload, format="json")
+    response = client.post("/api/pages/", user_page_payload, format="json")
     data = response.data
 
     assert response.status_code == 201
-    assert data["name"] == payload["name"]
-    assert data["description"] == payload["description"]
-    assert Tag.objects.filter(name=payload["tags"][0]["name"]).exists()
-    assert data["is_private"] == payload["is_private"]
+    assert data["name"] == user_page_payload["name"]
+    assert data["description"] == user_page_payload["description"]
+    assert Tag.objects.filter(name=user_page_payload["tags"][0]["name"]).exists()
+    assert data["is_private"] == user_page_payload["is_private"]
 
 
 @pytest.mark.django_db
@@ -210,10 +200,9 @@ def test_get_requests_of_not_your_page(
 
 
 @pytest.mark.django_db
-def test_block_page_without_permission(client, user_page, user_additional):
-    """Testing blocking without admin or moderator privilege"""
-    payload = {"permanent_block": True, "unblock_date": "2030-11-30T00:00:00+01:00"}
+def test_temporary_block_page_without_permission(client, user_additional, user_page):
+    payload = dict(permanent_block=True, unblock_date=datetime.datetime(2033, 10, 10))
     client.login(username="user2", password="userpass")
-    response = client.put(f"/api/block-page/{user_page.pk}/", payload, format="json")
+    response = client.put(f"/api/block-page/{user_page.pk}/", headers=payload)
 
     assert response.status_code == 403

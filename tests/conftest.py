@@ -7,6 +7,34 @@ from users.models import User
 
 
 @pytest.fixture
+def user_payload():
+    return dict(
+        email="user@user.com",
+        role="user",
+        title="user",
+        username="user",
+        first_name="Harry",
+        last_name="Potter",
+        password="userpass",
+        password_repeat="userpass",
+    )
+
+
+@pytest.fixture
+def incorrect_user_payload():
+    return dict(
+        email="user@user.com",
+        role="user",
+        title="user",
+        username="user",
+        first_name="Harry",
+        last_name="Potter",
+        password="userpass",
+        password_repeat="userpass2",
+    )
+
+
+@pytest.fixture
 def user():
     """Default user instance fixture"""
     user = User.objects.create(
@@ -84,6 +112,17 @@ def user_auth_token(client, user):
 
 
 @pytest.fixture
+def user_page_payload():
+    return {
+        "name": "UserPage",
+        "description": "This is the first page of this user",
+        "image": None,
+        "tags": [{"name": "SomeTag"}],
+        "is_private": True,
+    }
+
+
+@pytest.fixture
 def user_page(user):
     """Default user page fixture"""
     page = Page.objects.create(
@@ -104,6 +143,20 @@ def private_user_page(user):
         description="This is the seccond page of this user",
         is_private=True,
         owner=user,
+    )
+    page.save()
+    return page
+
+
+@pytest.fixture
+def blocked_user_page(user):
+    """Private user page fixture"""
+    page = Page.objects.create(
+        name="UserPrivatePage",
+        description="This is the blocked page of this user",
+        is_private=True,
+        owner=user,
+        permanent_block=True,
     )
     page.save()
     return page
@@ -136,6 +189,25 @@ def tag_additional():
     tag = Tag.objects.create(name="SomeOtherTag")
     tag.save()
     return tag
+
+
+@pytest.fixture
+def post_payload(user_page, post_on_private_page):
+    return dict(
+        page=user_page.pk,
+        subject="Some cool subject",
+        reply_to=post_on_private_page.pk,
+        content="This is my first post",
+    )
+
+
+@pytest.fixture
+def incorrect_post_payload(user_page):
+    return dict(
+        page=user_page.pk,
+        subject="Some cool subject",
+        content="This is my first post",
+    )
 
 
 @pytest.fixture

@@ -127,7 +127,13 @@ def accept_requests(page: Page, user: User = None) -> Response:
     Service that accepts certain request if follower id is provided.
     Otherwise, accepts all requests for certain page
     """
-    if user in page.followers.all():
+    if not user:
+        accept_all_requests(page)
+        return Response(
+            {"response": "All requests have been accepted"},
+            status=HTTP_200_OK,
+        )
+    elif user in page.followers.all():
         return Response(
             {"response": "User already follows you."},
             status=HTTP_409_CONFLICT,
@@ -136,12 +142,6 @@ def accept_requests(page: Page, user: User = None) -> Response:
         accept_request(page, user)
         return Response(
             {"response": "Request has been accepted"},
-            status=HTTP_200_OK,
-        )
-    elif not user:
-        accept_all_requests(page)
-        return Response(
-            {"response": "All requests have been accepted"},
             status=HTTP_200_OK,
         )
 

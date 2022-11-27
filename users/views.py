@@ -17,7 +17,7 @@ from rest_framework.mixins import (
 from innotter.permissions import (
     IsAdminOrModerOrReadOnly,
     IsNotAuthenticated,
-    IsAdminOrModer,
+    IsAdmin,
 )
 from users.serializers import UserSerializer, RegisterUserSerializer
 from users.models import User
@@ -68,8 +68,8 @@ class RetrieveUpdateDestroyUserViewSet(
         return Response({"result": "User successfully deleted."})
 
     @action(
-        methods=["get"],
-        permission_classes=(IsAuthenticated, IsAdminOrModer),
+        methods=["put"],
+        permission_classes=(IsAuthenticated, IsAdmin),
         detail=True,
         url_path="block-unblock",
         url_name="block_or_unblock_user",
@@ -79,4 +79,5 @@ class RetrieveUpdateDestroyUserViewSet(
         Service that provides possibility for
         admins and moderators to block users
         """
+        self.check_permissions(self.request)
         return block_unblock(user=self.get_object())
