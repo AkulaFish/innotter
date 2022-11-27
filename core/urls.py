@@ -15,7 +15,7 @@ router.register(r"posts", viewset=PostViewSet, basename="Posts")
 router.register(r"tags", viewset=TagListViewSet, basename="Tags")
 router.register(r"newsfeed", viewset=NewsFeedViewSet, basename="Posts")
 router.register("liked", viewset=LikesListViewSet, basename="Posts")
-router.register("block_page", viewset=BlockPageViewSet, basename="Pages")
+router.register("block-page", viewset=BlockPageViewSet, basename="BlockPages")
 
 app_name = "core"
 urlpatterns = [

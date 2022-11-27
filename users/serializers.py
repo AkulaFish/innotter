@@ -12,7 +12,9 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.ChoiceField(choices=("user", "manager", "admin"), required=True)
     title = serializers.CharField(max_length=255)
     is_blocked = serializers.BooleanField()
-    image_s3_path = serializers.ImageField(required=False, allow_null=True)
+    image_s3_path = serializers.ImageField(
+        allow_null=True, required=False, allow_empty_file=True
+    )
 
     class Meta:
         model = User
@@ -38,7 +40,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         style={"input-type": "password"},
     )
     image_s3_path = serializers.ImageField(
-        required=False, allow_empty_file=False, allow_null=True
+        required=False, allow_empty_file=False, allow_null=True, default=None
     )
     user_permissions = serializers.HiddenField(default=[])
     groups = serializers.HiddenField(default=[])
@@ -49,7 +51,7 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Password validation."""
-        if attrs["password"] != attrs["password2"]:
+        if attrs["password"] != attrs["password_repeat"]:
             raise serializers.ValidationError(
                 {"password": "Password fields didn't match."}
             )
@@ -68,7 +70,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
             title=validated_data["title"],
             username=validated_data["username"],
             first_name=validated_data["first_name"],
-            last_name=validated_data["first_name"],
+            last_name=validated_data["last_name"],
+            image_s3_path=validated_data["image_s3_path"],
         )
 
         user.set_password(validated_data["password"])

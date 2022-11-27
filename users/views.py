@@ -1,5 +1,9 @@
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -13,7 +17,7 @@ from rest_framework.mixins import (
 from innotter.permissions import (
     IsAdminOrModerOrReadOnly,
     IsNotAuthenticated,
-    IsAdminOrModer,
+    IsAdmin,
 )
 from users.serializers import UserSerializer, RegisterUserSerializer
 from users.models import User
@@ -54,7 +58,7 @@ class RetrieveUpdateDestroyUserViewSet(
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = (IsAdminOrModerOrReadOnly,)
+    permission_classes = (IsAuthenticatedOrReadOnly & IsAdminOrModerOrReadOnly,)
 
     def delete(self, request, *args, **kwargs):
         """Override delete to log the successful removal of a user."""
@@ -64,8 +68,8 @@ class RetrieveUpdateDestroyUserViewSet(
         return Response({"result": "User successfully deleted."})
 
     @action(
-        methods=["get"],
-        permission_classes=(IsAuthenticated, IsAdminOrModer),
+        methods=["put"],
+        permission_classes=(IsAuthenticated, IsAdmin),
         detail=True,
         url_path="block-unblock",
         url_name="block_or_unblock_user",
@@ -75,4 +79,5 @@ class RetrieveUpdateDestroyUserViewSet(
         Service that provides possibility for
         admins and moderators to block users
         """
+        self.check_permissions(self.request)
         return block_unblock(user=self.get_object())
