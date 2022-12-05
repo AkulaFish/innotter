@@ -66,7 +66,9 @@ class Post(models.Model):
         blank=True,
         related_name="replies",
     )
-    likes = models.ManyToManyField("users.User", related_name="liked_posts", blank=True)
+    likes = models.ManyToManyField(
+        "users.User", related_name="liked_posts", blank=True, default=[]
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

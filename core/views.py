@@ -1,9 +1,14 @@
+import os
+
+import requests
+
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import GenericViewSet
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import status
 
 from rest_framework.mixins import (
     RetrieveModelMixin,
@@ -13,9 +18,12 @@ from rest_framework.mixins import (
     DestroyModelMixin,
 )
 
+from core.email_services import send_new_post_notification_email
 from users.serializers import UserSerializer
+from core.producer import produce
 from core.models import Page, Tag
 from users.models import User
+
 
 from core.serializers import (
     BlockPageSerializer,
@@ -39,11 +47,11 @@ from innotter.permissions import (
 
 
 class PageViewSet(
+    RetrieveModelMixin,
+    DestroyModelMixin,
     CreateModelMixin,
     UpdateModelMixin,
     ListModelMixin,
-    RetrieveModelMixin,
-    DestroyModelMixin,
     GenericViewSet,
 ):
     """Page view set."""
@@ -56,6 +64,22 @@ class PageViewSet(
         IsAuthenticated,
         (IsAdminOrModer | IsOwner),
     )
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        produce.delay(
+            method="POST",
+            body=dict(page_id=response.data.get("id"), action="page_created"),
+        )
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        page = self.get_object()
+        super(PageViewSet, self).destroy(request, *args, **kwargs)
+        produce.delay(
+            method="DELETE", body=dict(page_id=page.pk, action="page_deleted")
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         permission_classes=(IsAuthenticated, IsOwner),
@@ -104,7 +128,7 @@ class PageViewSet(
         return accept_requests(page)
 
     @action(
-        methods=["put", "get"],
+        methods=["put"],
         url_name="follow_unfollow_page",
         url_path="follow-unfollow",
         detail=True,
@@ -148,17 +172,34 @@ class PostViewSet(
         cur_user = self.request.user
         return get_posts(cur_user)
 
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        produce.delay(
+            method="POST",
+            body=dict(page_id=response.data.get("page"), action="post_created"),
+        )
+        send_new_post_notification_email.delay(response.data.get("id"))
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        post = self.get_object()
+        super(PostViewSet, self).destroy(request, *args, **kwargs)
+        produce.delay(
+            method="DELETE", body=dict(page_id=post.page.pk, action="post_deleted")
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(
-        methods=["get", "put"],
+        methods=["get"],
         detail=True,
         url_path="like",
         url_name="like_or_unlike_post",
         permission_classes=(IsAuthenticated,),
     )
     def like_unlike_post(self, *args, **kwargs):
+        self.check_permissions(self.request)
         cur_user = self.request.user
         post = self.get_object()
-        self.check_permissions(self.request)
         return like_unlike(cur_user, post)
 
 
@@ -201,3 +242,28 @@ class LikesListViewSet(ListModelMixin, GenericViewSet):
 
     def get_queryset(self):
         return self.request.user.liked_posts.all()
+
+
+class GetMyPagesViewSet(GenericViewSet, ListModelMixin):
+    """Gets user pages"""
+
+    serializer_class = PageSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.pages.all()
+
+    @action(
+        methods=["get"],
+        detail=False,
+        url_name="get_stats",
+        url_path="stats"
+    )
+    def get_my_pages_stats(self, *args, **kwargs):
+        """Get statistics of your pages"""
+        my_pages_ids = {
+            "pages_ids": [page.pk for page in self.request.user.pages.all()]
+        }
+        response = requests.get(url=os.getenv("MICROSERVICE_URL"), params=my_pages_ids)
+        return Response(response.json())

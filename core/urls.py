@@ -3,19 +3,21 @@ from django.urls import path, include
 from core.views import (
     PageViewSet,
     PostViewSet,
+    TagListViewSet,
     NewsFeedViewSet,
     LikesListViewSet,
     BlockPageViewSet,
-    TagListViewSet,
+    GetMyPagesViewSet,
 )
 
 router = SimpleRouter()
 router.register(r"pages", viewset=PageViewSet, basename="Page")
 router.register(r"posts", viewset=PostViewSet, basename="Posts")
 router.register(r"tags", viewset=TagListViewSet, basename="Tags")
-router.register(r"newsfeed", viewset=NewsFeedViewSet, basename="Posts")
 router.register("liked", viewset=LikesListViewSet, basename="Posts")
+router.register(r"newsfeed", viewset=NewsFeedViewSet, basename="Posts")
 router.register("block-page", viewset=BlockPageViewSet, basename="BlockPages")
+router.register("get_my_pages", viewset=GetMyPagesViewSet, basename="get_my_pages")
 
 app_name = "core"
 urlpatterns = [

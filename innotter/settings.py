@@ -59,8 +59,8 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
     "UPDATE_LAST_LOGIN": False,
@@ -176,16 +176,18 @@ AWS_LOCATION = "static"
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-
 STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
-
 STATICFILES_STORAGE = "storages.backends.s3boto3.S3StaticStorage"
-
 STATIC_ROOT = "static/"
-
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# CELERY
+broker_host = os.getenv("BROKER_VHOST")
+broker_port = os.getenv("BROKER_PORT")
+broker_vhost = os.getenv("BROKER_VHOST")
+CELERY_BROKER_URl = os.getenv("CELERY_BROKER_URL")

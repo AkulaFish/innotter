@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.db.models import QuerySet
 
 from core.models import Page, Post, Tag
+from core.producer import produce
 from users.models import User
 
 
@@ -12,6 +13,7 @@ def accept_request(page: Page, target_user: User) -> None:
     """Accept single user request to follow other user's page"""
     page.follow_requests.remove(target_user)
     page.followers.add(target_user)
+    produce(method="PUT", body=dict(page_id=page.pk, action="follow"))
 
 
 def accept_all_requests(page: Page) -> None:
@@ -54,9 +56,11 @@ def like_unlike(cur_user: User, post: Post) -> Response:
     """Like or remove your like from the post if you already liked it"""
     if cur_user not in post.likes.all():
         post.likes.add(cur_user)
+        produce(method="GET", body=dict(page_id=post.page.pk, action="like"))
         return Response({"response": "Post added to your liked posts"})
     else:
         post.likes.remove(cur_user)
+        produce(method="GET", body=dict(page_id=post.page.pk, action="unlike"))
         return Response({"response": "Post removed from your liked posts"})
 
 
@@ -85,6 +89,7 @@ def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:
     if cur_user not in page.followers.all():
         if not page.is_private:
             page.followers.add(cur_user)
+            produce(method="PUT", body=dict(page_id=page.pk, action="follow"))
             return Response(
                 {"response": "Now you follow this page."},
                 status=HTTP_200_OK,
@@ -97,6 +102,7 @@ def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:
             )
     else:
         page.followers.remove(cur_user)
+        produce(method="PUT", body=dict(page_id=page.pk, action="unfollow"))
         return Response(
             {"response": "You're successfully unsubscribed."},
             status=HTTP_200_OK,
