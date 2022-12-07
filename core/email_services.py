@@ -1,11 +1,17 @@
 import os
 from typing import List
+import logging
 
 import botocore.errorfactory
 from celery import shared_task
 from django.core.mail import EmailMessage
 
 from core.models import Post
+
+
+LOGGER = logging.getLogger("EMAIL_SERVICE")
+LOGGER.setLevel(logging.INFO)
+logging.basicConfig()
 
 
 def get_recipient_list(post: Post) -> List[str]:
@@ -32,4 +38,4 @@ def send_new_post_notification_email(post_id: int) -> None:
         try:
             message.send(fail_silently=True)
         except botocore.errorfactory.ClientError:
-            print(f"Email {recipient} wasn't validated")
+            LOGGER.info(f"Email {recipient} wasn't validated")

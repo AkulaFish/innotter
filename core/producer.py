@@ -1,12 +1,19 @@
 import json
 import pika
 import os
+import logging
+
 from kombu.exceptions import OperationalError
 
 from innotter.celery import app
 
 
-@app.task
+LOGGER = logging.getLogger("PRODUCER")
+LOGGER.setLevel(logging.INFO)
+logging.basicConfig()
+
+
+@app.task(name="produce")
 def produce(method, body):
     """Sending message to RabbitMQ for stats microservice to consume"""
     try:
@@ -24,6 +31,6 @@ def produce(method, body):
             properties=properties,
         )
 
-        print("Published")
+        LOGGER.info("Published")
     except OperationalError:
-        print("Could not connect to RabbitMQ server")
+        LOGGER.info("Could not connect to RabbitMQ server")
