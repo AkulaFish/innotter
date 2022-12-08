@@ -82,13 +82,13 @@ def test_update_post(client, user, user_page, post):
 def test_like_unlike_post(client, user_page, post, user_additional):
     """Test like post and remove your like from this post"""
     client.login(username="user2", password="userpass")
-    response = client.put(f"/api/posts/{post.pk}/like/")
+    response = client.get(f"/api/posts/{post.pk}/like/")
 
     assert response.status_code == 200
     assert response.data["response"] == "Post added to your liked posts"
     assert post.likes.all()[0].pk == user_additional.pk
 
-    response = client.put(f"/api/posts/{post.pk}/like/")
+    response = client.get(f"/api/posts/{post.pk}/like/")
 
     assert response.status_code == 200
     assert response.data["response"] == "Post removed from your liked posts"

@@ -37,7 +37,7 @@ from core.services import (
     accept_requests,
     get_newsfeed,
     like_unlike,
-    get_posts,
+    get_posts, get_access_token,
 )
 from innotter.permissions import (
     PostIsOwnerAdminModerOrReadOnly,
@@ -263,7 +263,11 @@ class GetMyPagesViewSet(GenericViewSet, ListModelMixin):
     def get_my_pages_stats(self, *args, **kwargs):
         """Get statistics of your pages"""
         my_pages_ids = {
-            "pages_ids": [page.pk for page in self.request.user.pages.all()]
+            "pages_ids": [page.pk for page in self.request.user.pages.all()],
         }
-        response = requests.get(url=os.getenv("MICROSERVICE_URL"), params=my_pages_ids)
+        headers = {"token": get_access_token(my_pages_ids)}
+        response = requests.get(
+            url=os.getenv("MICROSERVICE_URL"),
+            headers=headers
+        )
         return Response(response.json())

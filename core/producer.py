@@ -1,4 +1,6 @@
 import json
+import socket
+
 import pika
 import os
 import logging
@@ -32,5 +34,5 @@ def produce(method, body):
         )
 
         LOGGER.info("Published")
-    except OperationalError:
+    except OperationalError or socket.gaierror:
         LOGGER.info("Could not connect to RabbitMQ server")

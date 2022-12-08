@@ -1,8 +1,13 @@
+import json
+import os
 from typing import List
 
+from django.conf import settings
 from rest_framework.status import HTTP_409_CONFLICT, HTTP_200_OK
 from rest_framework.response import Response
 from django.db.models import QuerySet
+from rest_framework_simplejwt.tokens import AccessToken
+import jwt
 
 from core.models import Page, Post, Tag
 from core.producer import produce
@@ -165,3 +170,8 @@ def get_tag_set_for_page(tags: List[dict]) -> List[Tag]:
             tag = Tag.objects.create(**tag_data)
         tag_objs.append(tag)
     return tag_objs
+
+
+def get_access_token(payload: dict) -> str:
+    token = jwt.encode(payload, os.getenv("SECRET_KEY"), os.getenv("ALGORITHM"))
+    return token

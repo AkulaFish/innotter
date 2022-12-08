@@ -52,5 +52,6 @@ services:
         - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
 networks:
   default:
-    external:
-      name: innotter-external
+    name: innotter-external
+    external: true
+
