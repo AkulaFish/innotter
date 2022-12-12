@@ -41,12 +41,9 @@ class Page(models.Model):
         """
         if self.permanent_block:
             return True
-        elif not self.unblock_date:
-            return False
-
-        if self.owner.is_blocked or self.unblock_date > timezone.now():
+        elif self.unblock_date and (self.owner.is_blocked or self.unblock_date > timezone.now()):
             return True
-        elif self.unblock_date <= timezone.now():
+        else:
             self.unblock_date = None
             self.save()
             return False

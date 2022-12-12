@@ -1,5 +1,3 @@
-import os
-
 import requests
 
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -20,8 +18,9 @@ from rest_framework.mixins import (
 
 from core.email_services import send_new_post_notification_email
 from users.serializers import UserSerializer
+from core.models import Page, Tag, Post
 from core.producer import produce
-from core.models import Page, Tag
+from innotter import settings
 from users.models import User
 
 
@@ -34,10 +33,10 @@ from core.serializers import (
 from core.services import (
     follow_or_unfollow_page,
     decline_requests,
+    get_access_token,
     accept_requests,
-    get_newsfeed,
     like_unlike,
-    get_posts, get_access_token,
+    get_posts,
 )
 from innotter.permissions import (
     PostIsOwnerAdminModerOrReadOnly,
@@ -163,7 +162,7 @@ class PostViewSet(
 
     serializer_class = PostSerializer
     permission_classes = (
-        IsAuthenticatedOrReadOnly,
+        IsAuthenticated,
         PostIsOwnerAdminModerOrReadOnly,
     )
 
@@ -210,14 +209,9 @@ class NewsFeedViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        """
-        Get queryset for all posts related to pages user is following.
-        posts_in_pages has the following structure:
-        [[posts_of_page_1],[posts_of_page_2]...[posts_of_page_n]]
-        So we want to have a flat list for our queryset and that's
-        why we use for cycle and extend our queryset with lists of pages
-        """
-        return get_newsfeed(self.request.user)
+        user = self.request.user
+        pages = [page.pk for page in user.follows.all() if not page.is_blocked]
+        return Post.objects.filter(page__in=pages)
 
 
 class TagListViewSet(
@@ -267,7 +261,7 @@ class GetMyPagesViewSet(GenericViewSet, ListModelMixin):
         }
         headers = {"token": get_access_token(my_pages_ids)}
         response = requests.get(
-            url=os.getenv("MICROSERVICE_URL"),
+            url=settings.STATS_MICROSERVICE_URL,
             headers=headers
         )
         return Response(response.json())

@@ -21,7 +21,7 @@ from innotter.permissions import (
 )
 from users.serializers import UserSerializer, RegisterUserSerializer
 from users.models import User
-from users.services import block_unblock
+from users.services import change_block_state
 
 
 class UserListViewSet(ListModelMixin, GenericViewSet):
@@ -80,4 +80,4 @@ class RetrieveUpdateDestroyUserViewSet(
         admins and moderators to block users
         """
         self.check_permissions(self.request)
-        return block_unblock(user=self.get_object())
+        return change_block_state(user=self.get_object())

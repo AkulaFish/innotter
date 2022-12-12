@@ -167,10 +167,11 @@ AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 AWS_HEADERS = {"Access-Control-Allow-Origin": "*"}
-EMAIL_BACKEND = "django_ses.SESBackend"
 AWS_QUERYSTRING_AUTH = False
 AWS_DEFAULT_ACL = None
 AWS_LOCATION = "static"
+EMAIL_BACKEND = "django_ses.SESBackend"
+FROM_EMAIL = os.getenv("FROM_EMAIL")
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -191,3 +192,25 @@ broker_host = os.getenv("BROKER_VHOST")
 broker_port = os.getenv("BROKER_PORT")
 broker_vhost = os.getenv("BROKER_VHOST")
 CELERY_BROKER_URl = os.getenv("CELERY_BROKER_URL")
+
+STATS_MICROSERVICE_URL = os.getenv("MICROSERVICE_URL")
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'core.email_services': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+        },
+        'core.producer': {
+            'handlers': ["console"],
+            'level': "INFO"
+        }
+    }
+}

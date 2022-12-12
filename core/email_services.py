@@ -1,17 +1,12 @@
-import os
-from typing import List
 import logging
+from typing import List
 
 import botocore.errorfactory
 from celery import shared_task
 from django.core.mail import EmailMessage
+from innotter import settings
 
 from core.models import Post
-
-
-LOGGER = logging.getLogger("EMAIL_SERVICE")
-LOGGER.setLevel(logging.INFO)
-logging.basicConfig()
 
 
 def get_recipient_list(post: Post) -> List[str]:
@@ -24,7 +19,7 @@ def get_message(post: Post, recipient: str) -> EmailMessage:
     return EmailMessage(
         f"New Post!!! Subject: {post.subject}",
         f"Check out new post on {post.page} by {post.page.owner.username}",
-        os.getenv("FROM_EMAIL"),
+        settings.FROM_EMAIL,
         [recipient],
     )
 
@@ -38,4 +33,4 @@ def send_new_post_notification_email(post_id: int) -> None:
         try:
             message.send(fail_silently=True)
         except botocore.errorfactory.ClientError:
-            LOGGER.info(f"Email {recipient} wasn't validated")
+            logging.error(f"Email {recipient} wasn't validated")

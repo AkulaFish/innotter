@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from users.models import User
 
 
-def block_unblock(user: User) -> Response:
+def change_block_state(user: User) -> Response:
     """Service that changes user is_blocked state and returns response"""
     if not user.is_blocked:
         user.is_blocked = True
