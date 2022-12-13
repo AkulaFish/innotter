@@ -24,3 +24,12 @@ And watch your friends' updates:
 ```
 :api/newsfeed/
 ```
+
+To build and run the application:
+```docker
+docker-compose up --build 
+```
+To run tests:
+```shell
+pytest
+```
