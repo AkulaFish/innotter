@@ -197,9 +197,10 @@ class PostViewSet(
     )
     def like_unlike_post(self, *args, **kwargs):
         self.check_permissions(self.request)
+        if_like = Post.LikeState(self.request.query_params.get("if_like", "like"))
         cur_user = self.request.user
         post = self.get_object()
-        return like_unlike(cur_user, post)
+        return like_unlike(cur_user, post, if_like)
 
 
 class NewsFeedViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
@@ -248,20 +249,12 @@ class GetMyPagesViewSet(GenericViewSet, ListModelMixin):
         user = self.request.user
         return user.pages.all()
 
-    @action(
-        methods=["get"],
-        detail=False,
-        url_name="get_stats",
-        url_path="stats"
-    )
+    @action(methods=["get"], detail=False, url_name="get_stats", url_path="stats")
     def get_my_pages_stats(self, *args, **kwargs):
         """Get statistics of your pages"""
         my_pages_ids = {
             "pages_ids": [page.pk for page in self.request.user.pages.all()],
         }
         headers = {"token": get_access_token(my_pages_ids)}
-        response = requests.get(
-            url=settings.STATS_MICROSERVICE_URL,
-            headers=headers
-        )
+        response = requests.get(url=settings.STATS_MICROSERVICE_URL, headers=headers)
         return Response(response.json())

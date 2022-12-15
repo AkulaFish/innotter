@@ -86,7 +86,7 @@ def admin():
 def user_additional():
     """Additional user instance fixture"""
     user = User.objects.create(
-        email="user2@user.com",
+        email="user_add@user.com",
         role="user",
         title="user2",
         username="user2",

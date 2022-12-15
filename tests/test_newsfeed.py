@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.mark.django_db
-def test_get_newsfeed(client, user_page, post, post_on_private_page, user_additional):
+def test_get_newsfeed(client, user_page):
     """Test getting newsfeed content where are posts of pages that current user follows"""
     client.login(username="user2", password="userpass")
     client.put(f"/api/pages/{user_page.pk}/follow-unfollow/")

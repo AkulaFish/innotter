@@ -29,5 +29,5 @@ def produce(method, body):
         )
 
         logging.info("Successfully published")
-    except (OperationalError, socket.gaierror):
+    except (OperationalError, socket.gaierror, Exception):
         logging.info("Could not connect to RabbitMQ server")

@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.utils import timezone
 from django.db import models
 
@@ -41,7 +43,9 @@ class Page(models.Model):
         """
         if self.permanent_block:
             return True
-        elif self.unblock_date and (self.owner.is_blocked or self.unblock_date > timezone.now()):
+        elif self.unblock_date and (
+            self.owner.is_blocked or self.unblock_date > timezone.now()
+        ):
             return True
         else:
             self.unblock_date = None
@@ -53,6 +57,10 @@ class Page(models.Model):
 
 
 class Post(models.Model):
+    class LikeState(Enum):
+        LIKE = "like"
+        UNLIKE = "unlike"
+
     subject = models.CharField(default="Post", null=False, max_length=200)
     page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name="posts")
     content = models.CharField(max_length=180)

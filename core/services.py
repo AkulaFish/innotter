@@ -2,7 +2,6 @@ from typing import List
 
 from rest_framework.status import HTTP_409_CONFLICT, HTTP_200_OK
 from rest_framework.response import Response
-from django.db.models import Q
 import jwt
 
 from innotter import settings
@@ -36,20 +35,28 @@ def get_posts(cur_user: User) -> List[Post]:
     if cur_user.is_staff:
         return Post.objects.all()
     else:
-        pages = Page.objects.select_related('posts').filter(is_private=False) ^ cur_user.follows.all()
+        pages = (
+            Page.objects.select_related("posts").filter(is_private=False)
+            ^ cur_user.follows.all()
+        )
         return Post.objects.select_related("page").filter(page__in=pages)
 
 
-def like_unlike(cur_user: User, post: Post) -> Response:
+def like_unlike(cur_user: User, post: Post, if_like: Post.LikeState) -> Response:
     """Like or remove your like from the post if you already liked it"""
-    if cur_user not in post.likes.all():
+    if if_like == Post.LikeState.LIKE:
         post.likes.add(cur_user)
         produce(method="GET", body=dict(page_id=post.page.pk, action="like"))
-        return Response({"response": "Post added to your liked posts"})
-    else:
+        return Response(
+            data={"response": "Post was added to your liked posts"}, status=HTTP_200_OK
+        )
+    elif if_like == Post.LikeState.UNLIKE:
         post.likes.remove(cur_user)
         produce(method="GET", body=dict(page_id=post.page.pk, action="unlike"))
-        return Response({"response": "Post removed from your liked posts"})
+        return Response(
+            data={"response": "Post was removed from your liked posts"},
+            status=HTTP_200_OK,
+        )
 
 
 def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:

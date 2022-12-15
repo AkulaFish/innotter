@@ -32,5 +32,5 @@ def send_new_post_notification_email(post_id: int) -> None:
         message = get_message(post, recipient)
         try:
             message.send(fail_silently=True)
-        except botocore.errorfactory.ClientError:
+        except (botocore.errorfactory.ClientError, Exception):
             logging.error(f"Email {recipient} wasn't validated")

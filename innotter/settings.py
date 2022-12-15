@@ -196,21 +196,18 @@ CELERY_BROKER_URl = os.getenv("CELERY_BROKER_URL")
 STATS_MICROSERVICE_URL = os.getenv("MICROSERVICE_URL")
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-    'loggers': {
-        'core.email_services': {
-            'handlers': ['console'],
-            'level': 'ERROR',
+    "loggers": {
+        "core.email_services": {
+            "handlers": ["console"],
+            "level": "ERROR",
         },
-        'core.producer': {
-            'handlers': ["console"],
-            'level': "INFO"
-        }
-    }
+        "core.producer": {"handlers": ["console"], "level": "INFO"},
+    },
 }
