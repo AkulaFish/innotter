@@ -16,6 +16,52 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 
+
+class Config:
+    """General configuration class, that loads environment variables"""
+
+    SECRET_KEY = os.getenv("SECRET_KEY")
+    DEBUG = bool(int(os.getenv("DEBUG", 0)))
+    ALLOWED_HOSTS = ["*"]
+    DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+    # AWS config
+    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+    AWS_HEADERS = {"Access-Control-Allow-Origin": "*"}
+    AWS_QUERYSTRING_AUTH = False
+    AWS_DEFAULT_ACL = None
+    AWS_LOCATION = "static"
+    EMAIL_BACKEND = "django_ses.SESBackend"
+    FROM_EMAIL = os.getenv("FROM_EMAIL")
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
+    STATICFILES_STORAGE = "storages.backends.s3boto3.S3StaticStorage"
+    STATIC_ROOT = "static/"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
+
+    # Celery config
+    BROKER_HOST = os.getenv("BROKER_VHOST")
+    BROKER_PORT = os.getenv("BROKER_PORT")
+    BROKER_VHOST = os.getenv("BROKER_VHOST")
+    CELERY_BROKER_URl = os.getenv("CELERY_BROKER_URL")
+
+    # DB config
+    POSTGRES_DB = os.getenv("POSTGRES_DB")
+    POSTGRES_USER = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+    POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+
+    # Microservice
+    STATS_MICROSERVICE_URL = os.getenv("MICROSERVICE_URL")
+
+
+config = Config()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,12 +70,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = config.SECRET_KEY
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = bool(int(os.getenv("DEBUG", 0)))
+DEBUG = config.DEBUG
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = config.ALLOWED_HOSTS
 
 # Application definition
 
@@ -61,28 +107,11 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": False,
-    "UPDATE_LAST_LOGIN": False,
     "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
-    "VERIFYING_KEY": None,
-    "AUDIENCE": None,
-    "ISSUER": None,
-    "JWK_URL": None,
-    "LEEWAY": 0,
-    "AUTH_HEADER_TYPES": ("Bearer",),
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
-    "USER_ID_FIELD": "id",
-    "USER_ID_CLAIM": "user_id",
+    "SIGNING_KEY": config.SECRET_KEY,
     "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
-    "TOKEN_TYPE_CLAIM": "token_type",
     "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
-    "JTI_CLAIM": "jti",
-    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
-    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
 }
 
 AUTH_USER_MODEL = "users.User"
@@ -122,11 +151,11 @@ WSGI_APPLICATION = "innotter.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB"),
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("POSTGRES_HOST"),
-        "PORT": os.getenv("POSTGRES_PORT"),
+        "NAME": config.POSTGRES_DB,
+        "USER": config.POSTGRES_USER,
+        "PASSWORD": config.POSTGRES_PASSWORD,
+        "HOST": config.POSTGRES_HOST,
+        "PORT": config.POSTGRES_PORT,
     }
 }
 
@@ -161,39 +190,39 @@ USE_TZ = True
 
 # AWS settings
 
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME")
-AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
-AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
-AWS_HEADERS = {"Access-Control-Allow-Origin": "*"}
-AWS_QUERYSTRING_AUTH = False
-AWS_DEFAULT_ACL = None
-AWS_LOCATION = "static"
-EMAIL_BACKEND = "django_ses.SESBackend"
-FROM_EMAIL = os.getenv("FROM_EMAIL")
+AWS_ACCESS_KEY_ID = config.AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY = config.AWS_SECRET_ACCESS_KEY
+AWS_STORAGE_BUCKET_NAME = config.AWS_STORAGE_BUCKET_NAME
+AWS_S3_CUSTOM_DOMAIN = config.AWS_S3_CUSTOM_DOMAIN
+AWS_S3_OBJECT_PARAMETERS = config.AWS_S3_OBJECT_PARAMETERS
+AWS_HEADERS = config.AWS_HEADERS
+AWS_QUERYSTRING_AUTH = config.AWS_QUERYSTRING_AUTH
+AWS_DEFAULT_ACL = config.AWS_DEFAULT_ACL
+AWS_LOCATION = config.AWS_LOCATION
+EMAIL_BACKEND = config.EMAIL_BACKEND
+FROM_EMAIL = config.FROM_EMAIL
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
-STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/static/"
-STATICFILES_STORAGE = "storages.backends.s3boto3.S3StaticStorage"
-STATIC_ROOT = "static/"
-MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
+DEFAULT_FILE_STORAGE = config.DEFAULT_FILE_STORAGE
+STATIC_URL = config.STATIC_URL
+STATICFILES_STORAGE = config.STATICFILES_STORAGE
+STATIC_ROOT = config.STATIC_ROOT
+MEDIA_URL = config.MEDIA_URL
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DEFAULT_AUTO_FIELD = config.DEFAULT_AUTO_FIELD
 
 # CELERY
-broker_host = os.getenv("BROKER_VHOST")
-broker_port = os.getenv("BROKER_PORT")
-broker_vhost = os.getenv("BROKER_VHOST")
-CELERY_BROKER_URl = os.getenv("CELERY_BROKER_URL")
+broker_host = config.BROKER_HOST
+broker_port = config.BROKER_PORT
+broker_vhost = config.BROKER_VHOST
+CELERY_BROKER_URl = config.CELERY_BROKER_URl
 
-STATS_MICROSERVICE_URL = os.getenv("MICROSERVICE_URL")
+STATS_MICROSERVICE_URL = config.STATS_MICROSERVICE_URL
 
 LOGGING = {
     "version": 1,
