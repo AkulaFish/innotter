@@ -68,7 +68,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install pipenv
         pipenv install --dev --system --deploy
-
+    - name:
+      run: |
+        - python manage.py makemigrations
+        - python manage.py migrate
     - name: Run Tests
       run: |
         python -m pytest
