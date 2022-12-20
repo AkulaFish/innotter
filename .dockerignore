@@ -4,3 +4,4 @@ Dockerfile
 env
 .gitignore
 .coverage
+/Pipfile.lock
