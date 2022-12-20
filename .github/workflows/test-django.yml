@@ -1,0 +1,73 @@
+name: Django Postgres CI
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    deafults:
+      run:
+        working-directory: .
+    env:
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASS: ${{ secrets.POSTGRES_PASS }}
+      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_PORT : ${{ secrets.POSTGRES_HOST }}
+      ALGORIHTM: ${{ secrets.ALGORIHTM }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_KEY_ID }}
+      AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
+      AWS_S3_CUSTOM_DOMAIN: ${{ secrets.AWS_S3_CUSTOM_DOMAIN }}
+      FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
+      CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
+      RABBITMQ_DEFAULT_USER: ${{ secrets.RABBITMQ_DEFAULT_USER }}
+      RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_PASS }}
+      RABBITMQ_DEFAULT_VHOST: ${{ secrets.RABBITMQ_DEFAULT_HOST }}
+      MICROSERVICE_URL: ${{secrets.MICROSERVICE_URL }}
+      BROKER_HOST: ${{ secrets.BROKER_HOST }}
+      BROKER_PORT: ${{ secrets.BROKER_PORT }}
+      BROKER_VHOST: ${{ secrets.BROKER_VHOST }}
+    services:
+      db:
+        image: postgres:15.1-alpine3.16
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASS: ${{ secrets.POSTGRES_PASS }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_HOST }}
+
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.10]
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pipenv
+        pipenv install --dev --system --deploy
+
+    - name: Run Tests
+      run: |
+        pytest
