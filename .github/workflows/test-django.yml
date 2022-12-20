@@ -37,6 +37,12 @@ jobs:
     services:
       db:
         image: postgres:15.1-alpine3.16
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASS: ${{ env.POSTGRES_PASS }}
+          POSTGRES_HOST: ${{ env.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ env.POSTGRES_HOST }}
         ports:
           - "5432:5432"
         options: >-
@@ -44,12 +50,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-        env:
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASS: ${{ secrets.POSTGRES_PASS }}
-          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-          POSTGRES_PORT: ${{ secrets.POSTGRES_HOST }}
 
     strategy:
       max-parallel: 4
