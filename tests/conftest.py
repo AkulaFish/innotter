@@ -230,3 +230,13 @@ def post(user, user_page):
     )
     post.save()
     return post
+
+
+@pytest.fixture
+def post_on_admin_page(admin, admin_page):
+    """ Admin page post instance fixture """
+    post = Post.objects.create(
+        subject="Post subject", page=admin_page, content="This is my first post"
+    )
+    post.save()
+    return post

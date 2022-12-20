@@ -1,4 +1,5 @@
 import datetime
+from unittest.mock import patch
 
 import pytest
 
@@ -28,7 +29,8 @@ def test_retrieve_page(client, user, user_page):
 
 
 @pytest.mark.django_db
-def test_page_create(client, user, user_page_payload):
+@patch("core.views.produce.delay")
+def test_page_create(produce_delay, client, user, user_page_payload):
     """Test creating page"""
     client.login(username="user", password="userpass")
     response = client.post("/api/pages/", user_page_payload, format="json")
@@ -69,7 +71,7 @@ def test_follow_unfollow_page(client, user_page, admin):
     assert len(user_page.followers.all()) == 1
     assert user_page.followers.all()[0] == admin
 
-    response = client.get(f"/api/pages/{user_page.pk}/follow-unfollow/")
+    response = client.put(f"/api/pages/{user_page.pk}/follow-unfollow/")
 
     assert response.data["response"] == "You're successfully unsubscribed."
     assert len(user_page.followers.all()) == 0

@@ -65,6 +65,7 @@ class PageViewSet(
     )
 
     def create(self, request, *args, **kwargs):
+        """Implements producer call"""
         response = super().create(request, *args, **kwargs)
         produce.delay(
             method="POST",
@@ -73,6 +74,7 @@ class PageViewSet(
         return response
 
     def destroy(self, request, *args, **kwargs):
+        """Implements producer call"""
         page = self.get_object()
         super(PageViewSet, self).destroy(request, *args, **kwargs)
         produce.delay(
@@ -169,9 +171,14 @@ class PostViewSet(
     def get_queryset(self):
         """Excludes posts on blocked pages and private pages"""
         cur_user = self.request.user
-        return get_posts(cur_user)
+        return (
+            cur_user.liked_posts.all()
+            if self.action == "get_liked_posts"
+            else get_posts(cur_user)
+        )
 
     def create(self, request, *args, **kwargs):
+        """Implements producer call"""
         response = super().create(request, *args, **kwargs)
         produce.delay(
             method="POST",
@@ -181,6 +188,7 @@ class PostViewSet(
         return response
 
     def destroy(self, request, *args, **kwargs):
+        """Implements producer call"""
         post = self.get_object()
         super(PostViewSet, self).destroy(request, *args, **kwargs)
         produce.delay(
@@ -196,11 +204,27 @@ class PostViewSet(
         permission_classes=(IsAuthenticated,),
     )
     def like_unlike_post(self, *args, **kwargs):
+        """
+        Like or unlike post. Default is 'like',
+        pass if_like=unlike parameter to the url to remove like
+        """
         self.check_permissions(self.request)
         if_like = Post.LikeState(self.request.query_params.get("if_like", "like"))
         cur_user = self.request.user
         post = self.get_object()
         return like_unlike(cur_user, post, if_like)
+
+    @action(
+        methods=["get"],
+        detail=False,
+        url_path="liked",
+        url_name="liked_posts",
+        permission_classes=(IsAuthenticated,),
+    )
+    def get_liked_posts(self, *args, **kwargs):
+        """Get user's liked posts"""
+        self.check_permissions(self.request)
+        return super().list(self.request)
 
 
 class NewsFeedViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
@@ -229,14 +253,6 @@ class TagListViewSet(
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
-
-
-class LikesListViewSet(ListModelMixin, GenericViewSet):
-    serializer_class = PostSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        return self.request.user.liked_posts.all()
 
 
 class GetMyPagesViewSet(GenericViewSet, ListModelMixin):

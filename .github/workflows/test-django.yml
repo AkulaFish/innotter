@@ -59,15 +59,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Start RabbitMQ
-      uses: namoshek/rabbitmq-github-action@v1
-      with:
-        version: '3.9.25-management-alpine'
-        ports: '5672:5672 15672:15672'
-        certificates: ${{ github.workspace }}/.ci/tls-certificates
-        config: ${{ github.workspace }}/.ci/rabbitmq.conf
-        definitions: ${{ github.workspace }}/.ci/definitions.json
-        container-name: 'rabbitmq'
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
