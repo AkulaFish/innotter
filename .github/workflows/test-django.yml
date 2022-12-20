@@ -70,7 +70,7 @@ jobs:
         pipenv install --dev --system --deploy
     - name: Make migrations
       run: |
-        python manage.py makemigrations
+        python manage.py makemigrations --run-syncdb
         python manage.py migrate
     - name: Run Tests
       run: |
