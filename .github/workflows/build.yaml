@@ -16,7 +16,6 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: test-django
     env:
       REPOSITORY: ${{ secrets.REPO_NAME }}
 
