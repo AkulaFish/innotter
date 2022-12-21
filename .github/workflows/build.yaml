@@ -42,8 +42,7 @@ jobs:
       run: |
           docker build -f Dockerfile \
           -t 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage:latest-innotter \
-          -t 942398500930.dkr.ecr.us-east-1.amazonaws.com/ \
-          innotter-container-storage:${GITHUB_SHA::7}-${GITHUB_RUN_ID::5} \
+          -t 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage:${GITHUB_SHA::7}-${GITHUB_RUN_ID::5} \
           .
     - name: Push image
       run: |
