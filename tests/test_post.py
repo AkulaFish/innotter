@@ -6,7 +6,15 @@ import pytest
 @pytest.mark.django_db
 @patch("core.views.produce.delay")
 @patch("core.views.send_new_post_notification_email.delay")
-def test_create_post(produce_delay, send_email, client, user_page, user, post_on_private_page, post_payload):
+def test_create_post(
+    produce_delay,
+    send_email,
+    client,
+    user_page,
+    user,
+    post_on_private_page,
+    post_payload,
+):
     """Test creating post on user page that replies to another post"""
     client.login(username="user", password="userpass")
     response = client.post("/api/posts/", post_payload)
