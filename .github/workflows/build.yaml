@@ -8,12 +8,10 @@ on:
 
 jobs:
   test-django:
-    uses: AkulaFish/innotter/.github/workflows/test-django.yml@dev
+    uses: AkulaFish/innotter/.github/workflows/test-django.yml@feature2
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-
-
     steps:
     - name: Install Octopus CLI
       uses: OctopusDeploy/install-octopus-cli-action@v1.1.1
