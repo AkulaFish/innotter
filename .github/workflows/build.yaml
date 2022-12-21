@@ -2,7 +2,7 @@ name: AWS ECR push
 
 on:
   workflow_run:
-    workflows: [Django Postgres CI]
+    workflows: ["Django Postgres CI"]
     types:
       - completed
 
