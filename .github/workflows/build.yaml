@@ -2,8 +2,8 @@ name: AWS ECR push
 
 on:
   workflow_run:
-    workflows: ["Django Postgres CI"]
-    branches: [ "main", "dev"]
+    workflows: [Django Postgres CI]
+    branches: ["main", "dev"]
     types:
       - completed
   push:
@@ -20,18 +20,6 @@ jobs:
         working-directory: .
     env:
       REPOSITORY: ${{ secrets.REPO_NAME }}
-      DJANGO_SETTINGS_MODULE: innotter.settings
-      SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
-
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [ 3.9 ]
 
     steps:
     - name: Checkout
@@ -50,16 +38,7 @@ jobs:
 
     - name: Build, tag, and push docker image to Amazon ECR
       env:
-        DJANGO_SETTINGS_MODULE: innotter.settings
-        SECRET_KEY: ${{ env.SECRET_KEY }}
-        REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         REPOSITORY: ${{ env.REPOSITORY }}
-        IMAGE_TAG: ${{ github.sha }}
-        POSTGRES_DB: ${{ env.POSTGRES_DB }}
-        POSTGRES_USER: ${{ env.POSTGRES_USER }}
-        POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
-        POSTGRES_HOST: ${{ env.POSTGRES_HOST }}
-        POSTGRES_PORT: ${{ env.POSTGRES_PORT }}
       run: |
         docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
         docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
