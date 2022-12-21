@@ -17,12 +17,11 @@ from rest_framework.mixins import (
 from innotter.permissions import (
     IsAdminOrModerOrReadOnly,
     IsNotAuthenticated,
-    IsAdmin,
     IsAdminOrModer,
 )
 from users.serializers import UserSerializer, RegisterUserSerializer
-from users.models import User
 from users.services import change_block_state
+from users.models import User
 
 
 class UserListViewSet(ListModelMixin, GenericViewSet):

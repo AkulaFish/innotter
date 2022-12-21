@@ -1,7 +1,6 @@
 .idea
 .git/
-Dockerfile
 env
 .gitignore
 .coverage
-/Pipfile.lock
+.pytest_cache
