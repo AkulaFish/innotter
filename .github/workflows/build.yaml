@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-django:
-    uses: AkulaFish/innotter/.github/workflows/test-django.yml@feature2
+    uses: AkulaFish/innotter/.github/workflows/test-django.yml@feature_2
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
