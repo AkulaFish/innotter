@@ -1,14 +1,15 @@
 name: Django Postgres CI
 
 on:
+  workflow_call:
+  workflow_dispatch:
   push:
     branches: [ "main", "dev" ]
   pull_request:
     branches: [ "main", "dev" ]
 
 jobs:
-  build:
-
+  test:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -21,20 +22,6 @@ jobs:
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
       POSTGRES_PORT : ${{ secrets.POSTGRES_PORT }}
-      ALGORIHTM: ${{ secrets.ALGORIHTM }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_SECRET_KEY_ID }}
-      AWS_STORAGE_BUCKET_NAME: ${{ secrets.AWS_STORAGE_BUCKET_NAME }}
-      AWS_S3_CUSTOM_DOMAIN: ${{ secrets.AWS_S3_CUSTOM_DOMAIN }}
-      FROM_EMAIL: ${{ secrets.FROM_EMAIL }}
-      CELERY_BROKER_URL: ${{ secrets.CELERY_BROKER_URL }}
-      RABBITMQ_DEFAULT_USER: ${{ secrets.RABBITMQ_DEFAULT_USER }}
-      RABBITMQ_DEFAULT_PASS: ${{ secrets.RABBITMQ_PASS }}
-      RABBITMQ_DEFAULT_VHOST: ${{ secrets.RABBITMQ_DEFAULT_HOST }}
-      MICROSERVICE_URL: ${{secrets.MICROSERVICE_URL }}
-      BROKER_HOST: ${{ secrets.BROKER_HOST }}
-      BROKER_PORT: ${{ secrets.BROKER_PORT }}
-      BROKER_VHOST: ${{ secrets.BROKER_VHOST }}
     services:
       db:
         image: postgres:15.1-alpine3.16
