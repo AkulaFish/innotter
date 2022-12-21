@@ -11,6 +11,14 @@ on:
 jobs:
   test_django_job:
     uses: AkulaFish/innotter/.github/workflows/test-django.yml@feature_2
+    with:
+      DJANGO_SETTINGS_MODULE: innotter.settings
+      SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+      POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
