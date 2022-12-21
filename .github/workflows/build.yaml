@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REPOSITORY: ${{ secrets.REPO_NAME }}
-
+    needs: [test_django]
     steps:
     - name: Install Octopus CLI
       uses: OctopusDeploy/install-octopus-cli-action@v1.1.1
