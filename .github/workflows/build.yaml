@@ -1,7 +1,11 @@
 name: AWS ECR push
 
 on:
-  workflow_call:
+  workflow_run:
+    workflows: ["Django Postgres CI"]
+    branches: [ "main", "dev"]
+    types:
+      - completed
   workflow_dispatch:
   push:
     branches: [ "main", "dev" ]
@@ -9,12 +13,10 @@ on:
     branches: [ "main", "dev" ]
 
 jobs:
-  test-django:
-    uses: AkulaFish/innotter/.github/workflows/test-django.yml@feature_2
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-    needs: [test_django]
+    needs: test-django
     env:
       REPOSITORY: ${{ secrets.REPO_NAME }}
 
