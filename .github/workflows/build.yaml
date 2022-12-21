@@ -46,5 +46,5 @@ jobs:
           innotter-container-storage:${GITHUB_SHA::7}-${GITHUB_RUN_ID::5} \
           .
     - name: Push image
-        run: |
-          docker push 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage --all-tags
+      run: |
+        docker push 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage --all-tags
