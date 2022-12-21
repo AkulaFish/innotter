@@ -63,3 +63,5 @@ jobs:
     - name: Run Tests
       run: |
         python -m pytest
+    - name: Run black linter
+      uses: psf/black@stable
