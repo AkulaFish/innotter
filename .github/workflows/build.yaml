@@ -1,14 +1,14 @@
+name: AWS ECR push
+
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ "main", "dev" ]
   pull_request:
-    branches: [ main, dev ]
-
-name: AWS ECR push
+    branches: [ "main", "dev" ]
 
 jobs:
   test-django:
-    uses: AkulaFish/innotter/.github/workflows/test-django.yml
+    uses: AkulaFish/innotter/.github/workflows/test-django.yml@dev
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
