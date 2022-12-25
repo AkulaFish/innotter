@@ -5,7 +5,7 @@ metadata:
   labels:
     app: innotter
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: innotter
@@ -19,72 +19,9 @@ spec:
           image: 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage:latest-innotter
           ports:
             - containerPort: 8000
-          command: ["/bin/sh", "-c"]
-          args: [ "chmod 777 ./entrypoint.sh" ]
           envFrom:
             - secretRef:
                 name: innotter-prod-env
-
-
----
-
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: rabbitmq-deployment
-  labels:
-    app: rabbitmq
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: rabbitmq
-  template:
-    metadata:
-      labels:
-        app: rabbitmq
-    spec:
-      containers:
-        - name: rabbitmq
-          image: rabbitmq:3.9.25-management-alpine
-          envFrom:
-            - secretRef:
-                name: innotter-prod-env
-          ports:
-          - containerPort: 5672
-            protocol: TCP
-          - containerPort: 15672
-            protocol: TCP
-
-
----
-
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres-deployment
-  labels:
-    app: postgres
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      containers:
-        - name: db
-          image: postgres:15.1-alpine3.16
-          envFrom:
-            - secretRef:
-                name: innotter-prod-env
-          ports:
-          - containerPort: 5432
 
 
 ---
@@ -97,50 +34,9 @@ metadata:
 spec:
   type: LoadBalancer
   ports:
-    - name: http
+    - name: innotter-web
       protocol: TCP
       port: 8000
       targetPort: 8000
   selector:
     app: innotter
-
-
----
-
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  labels:
-    app: postgres
-spec:
-  type: LoadBalancer
-  ports:
-   - port: 5432
-     targetPort: 5432
-  selector:
-   app: postgres
-
-
----
-
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: rabbitmq-service
-  labels:
-    app: rabbitmq
-spec:
-  type: LoadBalancer
-  ports:
-    - name: rabbitmq
-      port: 5672
-      targetPort: 5672
-    - name: rabbitmq-management
-      port: 15672
-      targetPort: 15672
-  selector:
-   app: rabbitmq
-
