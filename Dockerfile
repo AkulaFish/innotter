@@ -10,6 +10,6 @@ RUN pip install pipenv && \
     pipenv install --dev --system --deploy && \
     chmod +x /innotter/
 
-CMD ./entrypoint.sh
+CMD ["/bin/sh", "-c", "./entrypoint.sh"]
 
 
