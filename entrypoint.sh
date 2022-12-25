@@ -1,3 +1,4 @@
+#!/usr/bin/env sh
 set -ex
 python manage.py makemigrations
 python manage.py migrate

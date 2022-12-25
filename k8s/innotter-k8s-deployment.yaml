@@ -19,8 +19,8 @@ spec:
           image: 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage:latest-innotter
           ports:
             - containerPort: 8000
-#          command: ["/bin/sh", "-c"]
-#          args: [ "celery -A innotter worker -l info" ]
+          command: ["/bin/sh", "-c"]
+          args: [ "chmod 777 ./entrypoint.sh" ]
           envFrom:
             - secretRef:
                 name: innotter-prod-env
