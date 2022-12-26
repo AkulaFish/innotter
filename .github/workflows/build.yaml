@@ -45,6 +45,14 @@ jobs:
           -t 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage:latest-innotter \
           -t "942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage:\
           innotter-${GITHUB_SHA::7}-${GITHUB_RUN_ID::5}" .
+
     - name: Push image
       run: |
         docker push 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage --all-tags
+
+    - name: Update KubeConfig
+      run: |
+        aws eks update-kubeconfig --name ${{ secrets.AWS_CLUSTER_NAME }} --region=${{ matrix.region }}
+        
+    - name: Deploy To Cluster
+      run: kubectl apply -f AkulaFish/innotter/k8s/innotter-k8s-deployment.yaml@feature_2

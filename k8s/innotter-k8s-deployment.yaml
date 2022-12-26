@@ -22,7 +22,39 @@ spec:
           envFrom:
             - secretRef:
                 name: innotter-prod-env
+          imagePullPolicy: Always
 
+
+---
+
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    component: celery
+  name: celery-controller
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: innotter
+        component: innotter
+    spec:
+      containers:
+      - image: 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage:latest-innotter
+        name: innotter-web
+        command: [ "/bin/sh","-c" ]
+        args: [ "celery -A innotter beat -l info --detach; celery -A innotter worker -l info;" ]
+        ports:
+          - name: innotter-web
+            containerPort: 8000
+            protocol: TCP
+        envFrom:
+          - secretRef:
+              name: innotter-prod-env
+        imagePullPolicy: Always
 
 ---
 
