@@ -61,4 +61,4 @@ jobs:
         python -m pytest
     - name: Run linter
       run: |
-        flake8 . --max-line-length 99
+        flake8 . --exclude users/migrations,core/migrations --max-line-length 99
