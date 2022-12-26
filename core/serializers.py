@@ -32,7 +32,9 @@ class PageSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty_file=True,
         default=None,
-        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg"])],
+        validators=[
+            FileExtensionValidator(allowed_extensions=["jpg", "jpeg"])
+        ],
     )
     is_private = serializers.BooleanField(required=True)
     follow_requests = UserSerializer(read_only=True, many=True)
@@ -93,7 +95,12 @@ class PostSerializer(serializers.ModelSerializer):
     reply_to = serializers.PrimaryKeyRelatedField(
         queryset=Post.objects.all(), required=False, allow_empty=True
     )
-    likes = UserSerializer(read_only=True, many=True, default=None, allow_null=True)
+    likes = UserSerializer(
+        many=True,
+        default=None,
+        read_only=True,
+        allow_null=True
+    )
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
@@ -110,7 +117,8 @@ class PostSerializer(serializers.ModelSerializer):
         if page not in user.pages.all() or page.is_blocked:
             raise serializers.ValidationError(
                 {
-                    "detail": "Invalid page (perhaps page is blocked or it's not your page)."
+                    "detail":
+                        "Invalid page (perhaps page is blocked or it's not your page)."
                 }
             )
         return attrs

@@ -14,7 +14,8 @@ from innotter import settings
 def produce(method, body):
     """Sending message to RabbitMQ for stats microservice to consume"""
     try:
-        # Setting up connection with RabbitMQ server, creating new queue for message exchange
+        # Setting up connection with RabbitMQ server
+        # Creating new queue for message exchange
         params = pika.URLParameters(settings.CELERY_BROKER_URl)
         connection = pika.BlockingConnection(params)
         channel = connection.channel()

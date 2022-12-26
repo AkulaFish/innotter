@@ -21,7 +21,11 @@ class Page(models.Model):
     owner = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="pages"
     )
-    followers = models.ManyToManyField("users.User", related_name="follows", blank=True)
+    followers = models.ManyToManyField(
+        "users.User",
+        related_name="follows",
+        blank=True
+    )
     image = models.ImageField(
         blank=True,
         default=None,
@@ -38,8 +42,10 @@ class Page(models.Model):
     @property
     def is_blocked(self):
         """
-        This property defines whether page is still blocked if we set temporary blocking by using
-        unblock_date field or whether page must stay blocked because of permanent block
+        This property defines whether page is
+        still blocked if we set temporary blocking by using
+        unblock_date field or whether page
+        must stay blocked because of permanent block
         """
         if self.permanent_block:
             return True
@@ -62,7 +68,11 @@ class Post(models.Model):
         UNLIKE = "unlike"
 
     subject = models.CharField(default="Post", null=False, max_length=200)
-    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name="posts")
+    page = models.ForeignKey(
+        Page,
+        related_name="posts",
+        on_delete=models.CASCADE,
+        )
     content = models.CharField(max_length=180)
     reply_to = models.ForeignKey(
         "core.Post",
