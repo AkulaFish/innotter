@@ -31,7 +31,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-1
+        aws-region: ${{ secrets.REGION_NAME }}
 
     - name: Login to Amazon ECR
       id: login-ecr
@@ -52,7 +52,8 @@ jobs:
 
     - name: Update KubeConfig
       run: |
-        aws eks update-kubeconfig --name ${{ secrets.AWS_CLUSTER_NAME }} --region=${{ matrix.region }}
+        aws eks update-kubeconfig --name ${{ secrets.AWS_CLUSTER_NAME }} --region ${{ secrets.REGION_NAME }}
         
     - name: Deploy To Cluster
-      run: kubectl apply -f AkulaFish/innotter/k8s/innotter-k8s-deployment.yaml@feature_2
+      run: | 
+        kubectl apply -f ./k8s/innotter-k8s-deployment.yaml
