@@ -1,0 +1,6 @@
+.idea
+.git/
+env
+.gitignore
+.coverage
+.pytest_cache

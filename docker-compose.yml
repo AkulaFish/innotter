@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: always
+    env_file:
+      - ./.env
+    volumes:
+      - ./:/innotter
+    ports:
+      - "8000:8000"
+    links:
+      - rabbitmq
+    depends_on:
+      - rabbitmq
+      - db
+  celery:
+    image: celery:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    command: celery -A innotter worker -l info
+    env_file:
+      - .env
+    volumes:
+      - ./:/innotter
+    links:
+      - rabbitmq
+    depends_on:
+      - rabbitmq
+  db:
+    image: postgres:15.1-alpine3.16
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+  rabbitmq:
+    image: rabbitmq:3.9.25-management-alpine
+    container_name: 'rabbitmq'
+    env_file:
+      - .env
+    ports:
+        - "5672:5672"
+        - "15672:15672"
+    volumes:
+        - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+        - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+networks:
+  default:
+    name: innotter-external
+    external: true
+
