@@ -1,3 +1,5 @@
+from enum import Enum
+
 from django.utils import timezone
 from django.db import models
 
@@ -19,7 +21,11 @@ class Page(models.Model):
     owner = models.ForeignKey(
         "users.User", on_delete=models.CASCADE, related_name="pages"
     )
-    followers = models.ManyToManyField("users.User", related_name="follows", blank=True)
+    followers = models.ManyToManyField(
+        "users.User",
+        related_name="follows",
+        blank=True
+    )
     image = models.ImageField(
         blank=True,
         default=None,
@@ -36,17 +42,18 @@ class Page(models.Model):
     @property
     def is_blocked(self):
         """
-        This property defines whether page is still blocked if we set temporary blocking by using
-        unblock_date field or whether page must stay blocked because of permanent block
+        This property defines whether page is
+        still blocked if we set temporary blocking by using
+        unblock_date field or whether page
+        must stay blocked because of permanent block
         """
         if self.permanent_block:
             return True
-        elif not self.unblock_date:
-            return False
-
-        if self.owner.is_blocked or self.unblock_date > timezone.now():
+        elif self.unblock_date and (
+            self.owner.is_blocked or self.unblock_date > timezone.now()
+        ):
             return True
-        elif self.unblock_date <= timezone.now():
+        else:
             self.unblock_date = None
             self.save()
             return False
@@ -56,8 +63,16 @@ class Page(models.Model):
 
 
 class Post(models.Model):
+    class LikeState(Enum):
+        LIKE = "like"
+        UNLIKE = "unlike"
+
     subject = models.CharField(default="Post", null=False, max_length=200)
-    page = models.ForeignKey(Page, on_delete=models.CASCADE, related_name="posts")
+    page = models.ForeignKey(
+        Page,
+        related_name="posts",
+        on_delete=models.CASCADE,
+        )
     content = models.CharField(max_length=180)
     reply_to = models.ForeignKey(
         "core.Post",
@@ -66,7 +81,9 @@ class Post(models.Model):
         blank=True,
         related_name="replies",
     )
-    likes = models.ManyToManyField("users.User", related_name="liked_posts", blank=True)
+    likes = models.ManyToManyField(
+        "users.User", related_name="liked_posts", blank=True, default=[]
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

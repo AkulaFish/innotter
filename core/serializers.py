@@ -3,7 +3,6 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from core.email_services import create_daemon_thread_for_email
 from core.services import get_tag_set_for_page
 from users.serializers import UserSerializer
 from core.models import Page, Tag, Post
@@ -24,7 +23,7 @@ class PageSerializer(serializers.ModelSerializer):
 
     name = serializers.CharField(max_length=80, required=True)
     uuid = serializers.UUIDField(read_only=True, allow_null=True)
-    description = serializers.CharField(allow_null=True)
+    description = serializers.CharField(allow_null=False)
     tags = TagSerializer(many=True, required=False)
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
     followers = UserSerializer(many=True, read_only=True)
@@ -33,7 +32,9 @@ class PageSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty_file=True,
         default=None,
-        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg"])],
+        validators=[
+            FileExtensionValidator(allowed_extensions=["jpg", "jpeg"])
+        ],
     )
     is_private = serializers.BooleanField(required=True)
     follow_requests = UserSerializer(read_only=True, many=True)
@@ -50,7 +51,7 @@ class PageSerializer(serializers.ModelSerializer):
         Overriding create method for Tag nested serializer
         implemented in page serializer tags field
         """
-        tags = [dict(tag) for tag in validated_data.pop("tags")]
+        tags = validated_data.pop("tags", [])
         instance = Page.objects.create(**validated_data)
         instance.tags.set(get_tag_set_for_page(tags=tags))
         return instance
@@ -94,7 +95,12 @@ class PostSerializer(serializers.ModelSerializer):
     reply_to = serializers.PrimaryKeyRelatedField(
         queryset=Post.objects.all(), required=False, allow_empty=True
     )
-    likes = UserSerializer(read_only=True, many=True)
+    likes = UserSerializer(
+        many=True,
+        default=None,
+        read_only=True,
+        allow_null=True
+    )
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
 
@@ -104,19 +110,15 @@ class PostSerializer(serializers.ModelSerializer):
         partial = True
 
     def validate(self, attrs):
-        """Validating if user has access to chosen page"""
+        """Checking if user has access to chosen page"""
         request = self.context.get("request")
         user = request.user
         page = attrs.get("page")
         if page not in user.pages.all() or page.is_blocked:
             raise serializers.ValidationError(
                 {
-                    "detail": "Invalid page (perhaps page is blocked or it's not your page)."
+                    "detail":
+                        "Invalid page (perhaps page is blocked or it's not your page)."
                 }
             )
         return attrs
-
-    def create(self, validated_data):
-        instance = super().create(validated_data=validated_data)
-        create_daemon_thread_for_email(instance)
-        return instance

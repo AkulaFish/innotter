@@ -2,9 +2,11 @@ from typing import List
 
 from rest_framework.status import HTTP_409_CONFLICT, HTTP_200_OK
 from rest_framework.response import Response
-from django.db.models import QuerySet
+import jwt
 
+from innotter import settings
 from core.models import Page, Post, Tag
+from core.producer import produce
 from users.models import User
 
 
@@ -12,18 +14,17 @@ def accept_request(page: Page, target_user: User) -> None:
     """Accept single user request to follow other user's page"""
     page.follow_requests.remove(target_user)
     page.followers.add(target_user)
+    produce(method="PUT", body=dict(page_id=page.pk, action="follow"))
 
 
 def accept_all_requests(page: Page) -> None:
     """Accept all users' requests to follow a page"""
-    for user in page.follow_requests.all():
-        accept_request(page, user)
+    [accept_request(page, user) for user in page.follow_requests.all()]
 
 
 def decline_all_requests(page: Page) -> None:
     """Decline all users' requests to follow a page"""
-    for user in page.follow_requests.all():
-        page.follow_requests.remove(user)
+    [page.follow_requests.remove(user) for user in page.follow_requests.all()]
 
 
 def get_posts(cur_user: User) -> List[Post]:
@@ -31,44 +32,31 @@ def get_posts(cur_user: User) -> List[Post]:
     Get post list not including posts on blocked pages
     and posts on private pages current user isn't subscribed on.
     """
-    posts = []
-    for post in Post.objects.all():
-        page = post.page
-        if (
-            not page.is_blocked
-            and not page.is_private
-            or (
-                page.is_private
-                and (
-                    cur_user in page.followers.all()
-                    or cur_user.is_staff
-                    or page.owner == cur_user
-                )
-            )
-        ):
-            posts.append(post.pk)
-    return Post.objects.filter(pk__in=posts)
-
-
-def like_unlike(cur_user: User, post: Post) -> Response:
-    """Like or remove your like from the post if you already liked it"""
-    if cur_user not in post.likes.all():
-        post.likes.add(cur_user)
-        return Response({"response": "Post added to your liked posts"})
+    if cur_user.is_staff:
+        return Post.objects.all()
     else:
+        pages = (
+            Page.objects.select_related("posts").filter(is_private=False)
+            ^ cur_user.follows.all()
+        )
+        return Post.objects.select_related("page").filter(page__in=pages)
+
+
+def like_unlike(cur_user: User, post: Post, if_like: Post.LikeState) -> Response:
+    """Like or remove your like from the post if you already liked it"""
+    if if_like == Post.LikeState.LIKE:
+        post.likes.add(cur_user)
+        produce(method="GET", body=dict(page_id=post.page.pk, action="like"))
+        return Response(
+            data={"response": "Post was added to your liked posts"}, status=HTTP_200_OK
+        )
+    elif if_like == Post.LikeState.UNLIKE:
         post.likes.remove(cur_user)
-        return Response({"response": "Post removed from your liked posts"})
-
-
-def get_newsfeed(cur_user: User) -> List[QuerySet]:
-    """Get posts from pages current user subscribed on for their newsfeed"""
-    queryset = []
-    posts_in_pages = [
-        page.posts.all() for page in cur_user.follows.all() if not page.is_blocked
-    ]
-    for posts in posts_in_pages:
-        queryset.extend(posts)
-    return queryset
+        produce(method="GET", body=dict(page_id=post.page.pk, action="unlike"))
+        return Response(
+            data={"response": "Post was removed from your liked posts"},
+            status=HTTP_200_OK,
+        )
 
 
 def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:
@@ -85,6 +73,7 @@ def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:
     if cur_user not in page.followers.all():
         if not page.is_private:
             page.followers.add(cur_user)
+            produce(method="PUT", body=dict(page_id=page.pk, action="follow"))
             return Response(
                 {"response": "Now you follow this page."},
                 status=HTTP_200_OK,
@@ -97,6 +86,7 @@ def follow_or_unfollow_page(cur_user: User, page: Page) -> Response:
             )
     else:
         page.followers.remove(cur_user)
+        produce(method="PUT", body=dict(page_id=page.pk, action="unfollow"))
         return Response(
             {"response": "You're successfully unsubscribed."},
             status=HTTP_200_OK,
@@ -159,3 +149,8 @@ def get_tag_set_for_page(tags: List[dict]) -> List[Tag]:
             tag = Tag.objects.create(**tag_data)
         tag_objs.append(tag)
     return tag_objs
+
+
+def get_access_token(payload: dict) -> str:
+    token = jwt.encode(payload, settings.SECRET_KEY, settings.SIMPLE_JWT["ALGORITHM"])
+    return token

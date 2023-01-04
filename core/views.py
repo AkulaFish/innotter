@@ -1,9 +1,12 @@
+import requests
+
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.viewsets import GenericViewSet
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import status
 
 from rest_framework.mixins import (
     RetrieveModelMixin,
@@ -13,9 +16,13 @@ from rest_framework.mixins import (
     DestroyModelMixin,
 )
 
+from core.email_services import send_new_post_notification_email
 from users.serializers import UserSerializer
-from core.models import Page, Tag
+from core.models import Page, Tag, Post
+from core.producer import produce
+from innotter import settings
 from users.models import User
+
 
 from core.serializers import (
     BlockPageSerializer,
@@ -26,8 +33,8 @@ from core.serializers import (
 from core.services import (
     follow_or_unfollow_page,
     decline_requests,
+    get_access_token,
     accept_requests,
-    get_newsfeed,
     like_unlike,
     get_posts,
 )
@@ -39,11 +46,11 @@ from innotter.permissions import (
 
 
 class PageViewSet(
+    RetrieveModelMixin,
+    DestroyModelMixin,
     CreateModelMixin,
     UpdateModelMixin,
     ListModelMixin,
-    RetrieveModelMixin,
-    DestroyModelMixin,
     GenericViewSet,
 ):
     """Page view set."""
@@ -56,6 +63,24 @@ class PageViewSet(
         IsAuthenticated,
         (IsAdminOrModer | IsOwner),
     )
+
+    def create(self, request, *args, **kwargs):
+        """Implements producer call"""
+        response = super().create(request, *args, **kwargs)
+        produce.delay(
+            method="POST",
+            body=dict(page_id=response.data.get("id"), action="page_created"),
+        )
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        """Implements producer call"""
+        page = self.get_object()
+        super(PageViewSet, self).destroy(request, *args, **kwargs)
+        produce.delay(
+            method="DELETE", body=dict(page_id=page.pk, action="page_deleted")
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         permission_classes=(IsAuthenticated, IsOwner),
@@ -104,7 +129,7 @@ class PageViewSet(
         return accept_requests(page)
 
     @action(
-        methods=["put", "get"],
+        methods=["put"],
         url_name="follow_unfollow_page",
         url_path="follow-unfollow",
         detail=True,
@@ -139,27 +164,67 @@ class PostViewSet(
 
     serializer_class = PostSerializer
     permission_classes = (
-        IsAuthenticatedOrReadOnly,
+        IsAuthenticated,
         PostIsOwnerAdminModerOrReadOnly,
     )
 
     def get_queryset(self):
         """Excludes posts on blocked pages and private pages"""
         cur_user = self.request.user
-        return get_posts(cur_user)
+        return (
+            cur_user.liked_posts.all()
+            if self.action == "get_liked_posts"
+            else get_posts(cur_user)
+        )
+
+    def create(self, request, *args, **kwargs):
+        """Implements producer call"""
+        response = super().create(request, *args, **kwargs)
+        produce.delay(
+            method="POST",
+            body=dict(page_id=response.data.get("page"), action="post_created"),
+        )
+        send_new_post_notification_email.delay(response.data.get("id"))
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        """Implements producer call"""
+        post = self.get_object()
+        super(PostViewSet, self).destroy(request, *args, **kwargs)
+        produce.delay(
+            method="DELETE", body=dict(page_id=post.page.pk, action="post_deleted")
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
-        methods=["get", "put"],
+        methods=["get"],
         detail=True,
         url_path="like",
         url_name="like_or_unlike_post",
         permission_classes=(IsAuthenticated,),
     )
     def like_unlike_post(self, *args, **kwargs):
+        """
+        Like or unlike post. Default is 'like',
+        pass if_like=unlike parameter to the url to remove like
+        """
+        self.check_permissions(self.request)
+        if_like = Post.LikeState(self.request.query_params.get("if_like", "like"))
         cur_user = self.request.user
         post = self.get_object()
+        return like_unlike(cur_user, post, if_like)
+
+    @action(
+        methods=["get"],
+        detail=False,
+        url_path="liked",
+        url_name="liked_posts",
+        permission_classes=(IsAuthenticated,),
+    )
+    def get_liked_posts(self, *args, **kwargs):
+        """Get user's liked posts"""
         self.check_permissions(self.request)
-        return like_unlike(cur_user, post)
+        return super().list(self.request)
 
 
 class NewsFeedViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
@@ -169,14 +234,9 @@ class NewsFeedViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        """
-        Get queryset for all posts related to pages user is following.
-        posts_in_pages has the following structure:
-        [[posts_of_page_1],[posts_of_page_2]...[posts_of_page_n]]
-        So we want to have a flat list for our queryset and that's
-        why we use for cycle and extend our queryset with lists of pages
-        """
-        return get_newsfeed(self.request.user)
+        user = self.request.user
+        pages = [page.pk for page in user.follows.all() if not page.is_blocked]
+        return Post.objects.filter(page__in=pages)
 
 
 class TagListViewSet(
@@ -195,9 +255,22 @@ class TagListViewSet(
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
-class LikesListViewSet(ListModelMixin, GenericViewSet):
-    serializer_class = PostSerializer
+class GetMyPagesViewSet(GenericViewSet, ListModelMixin):
+    """Gets user pages"""
+
+    serializer_class = PageSerializer
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return self.request.user.liked_posts.all()
+        user = self.request.user
+        return user.pages.all()
+
+    @action(methods=["get"], detail=False, url_name="get_stats", url_path="stats")
+    def get_my_pages_stats(self, *args, **kwargs):
+        """Get statistics of your pages"""
+        my_pages_ids = {
+            "pages_ids": [page.pk for page in self.request.user.pages.all()],
+        }
+        headers = {"token": get_access_token(my_pages_ids)}
+        response = requests.get(url=settings.STATS_MICROSERVICE_URL, headers=headers)
+        return Response(response.json())

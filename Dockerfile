@@ -6,7 +6,11 @@ WORKDIR /innotter
 
 COPY . /innotter/
 
-RUN pip install -r requirements.txt && \
-    chmod +x /innotter/
+RUN pip install pipenv && \
+    pipenv install --dev --system --deploy && \
+    chmod +x /innotter/ && \
+    chmod +x ./entrypoint.sh
 
-CMD ./entrypoint.sh
+CMD ["/bin/sh", "-c", "./entrypoint.sh"]
+
+

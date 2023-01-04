@@ -86,7 +86,7 @@ def admin():
 def user_additional():
     """Additional user instance fixture"""
     user = User.objects.create(
-        email="user2@user.com",
+        email="user_add@user.com",
         role="user",
         title="user2",
         username="user2",
@@ -227,6 +227,16 @@ def post(user, user_page):
     """Default post instance fixture"""
     post = Post.objects.create(
         subject="Post subject", page=user_page, content="This is my first post"
+    )
+    post.save()
+    return post
+
+
+@pytest.fixture
+def post_on_admin_page(admin, admin_page):
+    """Admin page post instance fixture"""
+    post = Post.objects.create(
+        subject="Post subject", page=admin_page, content="This is my first post"
     )
     post.save()
     return post

@@ -17,11 +17,11 @@ from rest_framework.mixins import (
 from innotter.permissions import (
     IsAdminOrModerOrReadOnly,
     IsNotAuthenticated,
-    IsAdmin,
+    IsAdminOrModer,
 )
 from users.serializers import UserSerializer, RegisterUserSerializer
+from users.services import change_block_state
 from users.models import User
-from users.services import block_unblock
 
 
 class UserListViewSet(ListModelMixin, GenericViewSet):
@@ -69,7 +69,7 @@ class RetrieveUpdateDestroyUserViewSet(
 
     @action(
         methods=["put"],
-        permission_classes=(IsAuthenticated, IsAdmin),
+        permission_classes=(IsAuthenticated, IsAdminOrModer),
         detail=True,
         url_path="block-unblock",
         url_name="block_or_unblock_user",
@@ -80,4 +80,5 @@ class RetrieveUpdateDestroyUserViewSet(
         admins and moderators to block users
         """
         self.check_permissions(self.request)
-        return block_unblock(user=self.get_object())
+        if_block = User.BlockState(self.request.query_params.get("if_block", "block"))
+        return change_block_state(user=self.get_object(), if_block=if_block)

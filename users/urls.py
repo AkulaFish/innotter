@@ -2,9 +2,9 @@ from django.urls import path, include
 from rest_framework.routers import SimpleRouter
 
 from users.views import (
-    UserListViewSet,
-    RegisterUserViewSet,
     RetrieveUpdateDestroyUserViewSet,
+    RegisterUserViewSet,
+    UserListViewSet,
 )
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
