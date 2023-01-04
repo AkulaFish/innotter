@@ -4,9 +4,9 @@ on:
   workflow_call:
   workflow_dispatch:
   push:
-    branches: [main, dev]
+    branches: [main]
   pull_request:
-    branches: [main, dev]
+    branches: [main]
 
 jobs:
   test_django_job:
@@ -46,14 +46,14 @@ jobs:
           -t "942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage:\
           innotter-${GITHUB_SHA::7}-${GITHUB_RUN_ID::5}" .
 
-    - name: Push image
+    - name: Push image to ECR
       run: |
         docker push 942398500930.dkr.ecr.us-east-1.amazonaws.com/innotter-container-storage --all-tags
 
-    - name: Update KubeConfig
-      run: |
-        aws eks update-kubeconfig --name ${{ secrets.AWS_CLUSTER_NAME }} --region ${{ secrets.REGION_NAME }}
-        
-    - name: Deploy To Cluster
-      run: | 
-        kubectl apply -f ./k8s/innotter-k8s-deployment.yaml
+#    - name: Update KubeConfig
+#      run: |
+#        aws eks update-kubeconfig --name ${{ secrets.AWS_CLUSTER_NAME }} --region ${{ secrets.REGION_NAME }}
+#
+#    - name: Deploy To Cluster
+#      run: |
+#        kubectl apply -f ./k8s/innotter-k8s-deployment.yaml

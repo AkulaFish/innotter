@@ -62,3 +62,4 @@ jobs:
     - name: Run linter
       run: |
         flake8 . --exclude users/migrations,core/migrations --max-line-length 99
+        black .
