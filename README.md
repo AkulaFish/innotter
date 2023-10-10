@@ -1,6 +1,6 @@
 # Innotter
 Twitter analogue with its own tips  
-Social network API, where you can crete you page, tell the world your story!
+Social network API, where you can create you page, tell the world your story!
 
 Models:
 - User (Roles: Admin, Moderator, User)
